@@ -71,9 +71,11 @@ class Dacte extends Common
     protected $infNFe;
     protected $compl;
     protected $ICMS;
+    protected $ICMSSN;
+    protected $ICMSOutraUF;
     protected $imp;
     protected $toma4;
-    protected $toma03;
+    protected $toma3; //VALTER
     protected $tpEmis;
     protected $tpImp;
     protected $tpAmb;
@@ -87,7 +89,10 @@ class Dacte extends Common
     protected $preVisualizar;
     protected $flagDocOrigContinuacao;
     protected $arrayNFe = array();
-
+    protected $TextoRodape = ''; //VALTER
+    protected $idDocAntEle; //VALTER
+    protected $arrayIdDocAntEle = []; //VALTER
+    
     /**
      * __construct
      *
@@ -172,15 +177,20 @@ class Dacte extends Common
             $this->ferrov = $this->dom->getElementsByTagName("ferrov")->item(0);
             // adicionar outros modais
             $this->infCteComp = $this->dom->getElementsByTagName("infCteComp")->item(0);
-            $this->chaveCTeRef = $this->pSimpleGetValue($this->infCteComp, "chave");
+            $this->chaveCTeRef = $this->pSimpleGetValue($this->infCteComp, "chave"); //VALTER - 2.0
+            if ($this->chaveCTeRef == '') {
+                $this->chaveCTeRef = $this->pSimpleGetValue($this->infCteComp, "chCTe"); //VALTER - 3.0
+            }
             $this->vPrest = $this->dom->getElementsByTagName("vPrest")->item(0);
             $this->Comp = $this->dom->getElementsByTagName("Comp");
             $this->infNF = $this->dom->getElementsByTagName("infNF");
             $this->infNFe = $this->dom->getElementsByTagName("infNFe");
+            $this->idDocAntEle = $this->dom->getElementsByTagName("idDocAntEle"); //VALTER
             $this->infOutros = $this->dom->getElementsByTagName("infOutros");
             $this->compl = $this->dom->getElementsByTagName("compl");
             $this->ICMS = $this->dom->getElementsByTagName("ICMS")->item(0);
             $this->ICMSSN = $this->dom->getElementsByTagName("ICMSSN")->item(0);
+            $this->ICMSOutraUF = $this->dom->getElementsByTagName("ICMSOutraUF")->item(0);
             $this->imp = $this->dom->getElementsByTagName("imp")->item(0);
 
             $vTrib = $this->pSimpleGetValue($this->imp, "vTotTrib");
@@ -192,10 +202,13 @@ class Dacte extends Common
             $this->textoAdic = "o valor aproximado de tributos incidentes sobre o preço deste serviço é de R$"
                     .$textoAdic;
             $this->toma4 = $this->dom->getElementsByTagName("toma4")->item(0);
-            $this->toma03 = $this->dom->getElementsByTagName("toma03")->item(0);
+            $this->toma3 = $this->dom->getElementsByTagName("toma3")->item(0); //VALTER - no CTe 3.0 eh toma3
+            if ($this->toma3 == '') { //VALTER - pode ser o CTe 2.0
+                $this->toma3 = $this->dom->getElementsByTagName("toma03")->item(0); //VALTER - no CTe 2.0 eh toma03
+            }
             //modal aquaviário
             $this->aquav = $this->dom->getElementsByTagName("aquav")->item(0);
-            $tomador = $this->pSimpleGetValue($this->toma03, "toma");
+            $tomador = $this->pSimpleGetValue($this->toma3, "toma"); //VALTER
             //0-Remetente;1-Expedidor;2-Recebedor;3-Destinatário;4-Outros
             switch ($tomador) {
                 case '0':
@@ -511,7 +524,7 @@ class Dacte extends Common
             $aR = array('id' => str_replace('CTe', '', $this->infCte->getAttribute("Id")), 'classe_PDF' => $this->pdf);
             return $aR;
         } else {
-            return str_replace('CTe', '', $this->infCte->getAttribute("Id"));
+            return !is_null($this->infCte) ? str_replace('CTe', '', $this->infCte->getAttribute("Id")) : '';
         }
     } //fim da função montaDACTE
 
@@ -682,7 +695,7 @@ class Dacte extends Common
                 $texto = 'Substituto';
                 break;
             default:
-                $texto = 'ERRO' . $tpCTe . $tpServ;
+                $texto = 'ERRO' . $tpCTe; // . $tpServ; //VALTER - comentado a variável "$tpServ"
         }
         $aFont = $this->formatNegrito;
         $this->pTextBox($x, $y1 + 3, $w * 0.5, $h1, $texto, $aFont, 'T', 'C', 0, '', false);
@@ -749,14 +762,16 @@ class Dacte extends Common
         $aFont = $this->formatNegrito;
         $this->pTextBox($x, $y2 + 3, $w * 0.5, $h1, $texto, $aFont, 'T', 'C', 0, '', false);
         //FORMA DE PAGAMENTO
+        $forma = $this->pSimpleGetValue($this->ide, "forPag"); //VALTER
         $texto = 'FORMA DE PAGAMENTO';
         $wd = 36;
         $aFont = array(
             'font' => $this->fontePadrao,
             'size' => 8,
             'style' => '');
-        $this->pTextBox($x + $wa + 4.5, $y2, $w * 0.5, $h1, $texto, $aFont, 'T', 'C', 0, '');
-        $forma = $this->pSimpleGetValue($this->ide, "forPag");
+        if ($forma != '') //VALTER
+            $this->pTextBox($x + $wa + 4.5, $y2, $w * 0.5, $h1, $texto, $aFont, 'T', 'C', 0, ''); //VALTER
+        //$forma = $this->pSimpleGetValue($this->ide, "forPag"); //VALTER
         //0 - Pago;1 - A pagar;2 - outros
         switch ($forma) {
             case '0':
@@ -769,7 +784,7 @@ class Dacte extends Common
                 $texto = 'Outros';
                 break;
             default:
-                $texto = 'ERRO' . $forma;
+                $texto = ''; //'ERRO' . $forma; //VALTER
         }
         $aFont = $this->formatNegrito;
         $this->pTextBox($x + $wa + 4.5, $y2 + 3, $w * 0.5, $h1, $texto, $aFont, 'T', 'C', 0, '', false);
@@ -892,7 +907,7 @@ class Dacte extends Common
             'size' => 8,
             'style' => '');
         $this->pTextBox($xa, $y + 1, $wa, $h, $texto, $aFont, 'T', 'C', 0, '');
-        $texto = !empty($this->ide->getElementsByTagName("dhEmi")->item(0)->nodeValue) ?
+        $texto = ( !is_null($this->ide) && !empty($this->ide->getElementsByTagName("dhEmi")->item(0)->nodeValue) ) ? //VALTER
             date('d/m/Y H:i:s', $this->pConvertTime($this->pSimpleGetValue($this->ide, "dhEmi"))) : '';
         $aFont = $this->formatNegrito;
         $this->pTextBox($xa, $y + 5, $wa, $h, $texto, $aFont, 'T', 'C', 0, '');
@@ -915,7 +930,7 @@ class Dacte extends Common
         $h1 = 14;
         $this->pTextBox($x, $y, $w + 0.5, $h1);
         //CODIGO DE BARRAS
-        $chave_acesso = str_replace('CTe', '', $this->infCte->getAttribute("Id"));
+        $chave_acesso = !is_null($this->infCte) ? str_replace('CTe', '', $this->infCte->getAttribute("Id")) : ''; //VALTER
         $bW = 85;
         $bH = 10;
         //codigo de barras
@@ -1033,7 +1048,7 @@ class Dacte extends Common
         $this->pTextBox($x, $y + 3.5, $w, $h, $texto, $aFont, 'T', 'L', 0, '');
         //#########################################################################
         //Indicação de CTe Homologação, cancelamento e falta de protocolo
-        $tpAmb = $this->ide->getElementsByTagName('tpAmb')->item(0)->nodeValue;
+        $tpAmb = !is_null($this->ide) ? $this->ide->getElementsByTagName('tpAmb')->item(0)->nodeValue : ''; //VALTER
         //indicar cancelamento
         $cStat = $this->pSimpleGetValue($this->cteProc, "cStat");
         if ($cStat == '101' || $cStat == '135' || $this->situacao_externa == self::NFEPHP_SITUACAO_EXTERNA_CANCELADA) {
@@ -1201,6 +1216,17 @@ class Dacte extends Common
     } //fim zCabecalho
 
     /**
+     * setTextoRodape
+     * @param string $newTextoRodape
+     * @return none
+     * Author: VALTER
+     */
+    public function setTextoRodape($newTextoRodape)
+    {
+        $this->TextoRodape = $newTextoRodape;
+    }
+
+    /**
      * rodapeDACTE
      * Monta o rodape no final da DACTE ( retrato e paisagem )
      *
@@ -1208,7 +1234,8 @@ class Dacte extends Common
      * @param number $yFinal Posição vertical final para impressão
      */
     protected function zRodape($x, $y)
-    {
+    { //VALTER
+        /*
         $texto = "Impresso em  " . date('d/m/Y   H:i:s');
         $w = $this->wPrint - 4;
         $aFont = array(
@@ -1222,6 +1249,15 @@ class Dacte extends Common
             'size' => 6,
             'style' => '');
         $this->pTextBox($x, $y, $w, 4, $texto, $aFont, 'T', 'R', 0, 'http://www.nfephp.org');
+        */
+        $texto = $this->TextoRodape;
+        //$y = $this->hPrint - 4; //teste - não deu certo em todos os casos
+        $w = $this->wPrint - 4;
+        $aFont = array(
+            'font' => $this->fontePadrao,
+            'size' => 6,
+            'style' => '');
+        $this->pTextBox($x, $y, $w, 4, $texto, $aFont, 'T', 'R', 0, '');
     } //fim zRodape
 
     /**
@@ -2047,8 +2083,24 @@ class Dacte extends Common
         $this->pTextBox($x, $y, $w * 0.14, $h, $texto, $aFont, 'T', 'L', 0, '');
          * */
 
+        //SITUAÇÃO TRIBUTÁRIA //VALTER
         $x = $oldX;
         $y = $y + 4;
+
+        //PEGA OS VALORES DO ICMS PELOS CAMPOS DEFAULT (DEPOIS TRATA CASO-A-CASO)
+        $vBC = (!is_null($this->ICMS) && !empty($this->ICMS->getElementsByTagName("vBC")->item(0)->nodeValue) ) ? //VALTER
+            number_format($this->pSimpleGetValue($this->ICMS, "vBC"), 2, ",", ".") : '';
+
+        $pICMS = (!is_null($this->ICMS) && !empty($this->ICMS->getElementsByTagName("pICMS")->item(0)->nodeValue) ) ? //VALTER
+            number_format($this->pSimpleGetValue($this->ICMS, "pICMS"), 2, ",", ".") : '';
+
+        $vICMS = (!is_null($this->ICMS) && !empty($this->ICMS->getElementsByTagName("vICMS")->item(0)->nodeValue) ) ? //VALTER
+            number_format($this->pSimpleGetValue($this->ICMS, "vICMS"), 2, ",", ".") : '';
+
+        $pRedBC = (!is_null($this->ICMS) && !empty($this->ICMS->getElementsByTagName("pRedBC")->item(0)->nodeValue) ) ? //VALTER
+            number_format($this->pSimpleGetValue($this->ICMS, "pRedBC"), 2, ",", ".").'%' :'';
+
+
         $texto = $this->pSimpleGetValue($this->ICMS, "CST");
         switch ($texto) {
             case '00':
@@ -2068,37 +2120,96 @@ class Dacte extends Common
                 break;
             case '60':
                 $texto = "60 - ICMS cobrado anteriormente por substituição tributária";
+
+                if ( !is_null($this->ICMS) ) //VALTER
+                {
+                    $vBC = !empty($this->ICMS->getElementsByTagName("vBCSTRet")->item(0)->nodeValue) ? //VALTER
+                        number_format($this->pSimpleGetValue($this->ICMS, "vBCSTRet"), 2, ",", ".") : '';
+
+                    $pICMS = !empty($this->ICMS->getElementsByTagName("pICMSSTRet")->item(0)->nodeValue) ? //VALTER
+                        number_format($this->pSimpleGetValue($this->ICMS, "pICMSSTRet"), 2, ",", ".") : '';
+            
+                    $vICMS = !empty($this->ICMS->getElementsByTagName("vICMSSTRet")->item(0)->nodeValue) ? //VALTER
+                        number_format($this->pSimpleGetValue($this->ICMS, "vICMSSTRet"), 2, ",", ".") : '';
+                }
+
                 break;
             case '90':
-                $texto = "90 - ICMS outros";
+                if ($this->ICMSOutraUF) {
+                    $texto = "90 - ICMS Outra UF";
+
+                    if ( !is_null($this->ICMS) ) //VALTER
+                    {
+                        $vBC = !empty($this->ICMS->getElementsByTagName("vBCOutraUF")->item(0)->nodeValue) ? //VALTER
+                            number_format($this->pSimpleGetValue($this->ICMS, "vBCOutraUF"), 2, ",", ".") : '';
+
+                        $pICMS = !empty($this->ICMS->getElementsByTagName("pICMSOutraUF")->item(0)->nodeValue) ? //VALTER
+                            number_format($this->pSimpleGetValue($this->ICMS, "pICMSOutraUF"), 2, ",", ".") : '';
+                
+                        $vICMS = !empty($this->ICMS->getElementsByTagName("vICMSOutraUF")->item(0)->nodeValue) ? //VALTER
+                            number_format($this->pSimpleGetValue($this->ICMS, "vICMSOutraUF"), 2, ",", ".") : '';
+
+                        $pRedBC = !empty($this->ICMS->getElementsByTagName("pRedBCOutraUF")->item(0)->nodeValue) ? //VALTER
+                            number_format($this->pSimpleGetValue($this->ICMS, "pRedBCOutraUF"), 2, ",", ".").'%' :'';
+                    }
+                } elseif ($this->ICMSSN) {
+                    $texto = "Simples Nacional"; //VALTER - "90 - ICMS Simples Nacional"
+
+                    if ( !is_null($this->ICMS) ) //VALTER
+                    {
+                        $vICMS = !empty($this->ICMS->getElementsByTagName("vTotTrib")->item(0)->nodeValue) ? //VALTER
+                            number_format($this->pSimpleGetValue($this->ICMS, "vTotTrib"), 2, ",", ".") : '';
+                    }
+                } else {
+                    $texto = "90 - ICMS Outros";
+                }
                 break;
+            case '': //VALTER - versão 2.0
+                if ($this->ICMSSN) {
+                    $texto = "Simples Nacional"; //VALTER
+                }
+
+                if ( !is_null($this->ICMS) ) //VALTER
+                {
+                    $vICMS = !empty($this->ICMS->getElementsByTagName("vTotTrib")->item(0)->nodeValue) ? //VALTER
+                        number_format($this->pSimpleGetValue($this->ICMS, "vTotTrib"), 2, ",", ".") : '';
+                }
+            break;
         }
-        $texto .= $this->pSimpleGetValue($this->ICMSSN, "indSN");
-        $texto = $texto == 1 ? 'Simples Nacional' : $texto;
+        //$icmssn = $this->pSimpleGetValue($this->ICMSSN, "indSN"); //VALTER
+        //$texto = $icmssn == 1 ? 'Simples Nacional' : $texto; //VALTER
         $aFont = $this->formatNegrito;
         $this->pTextBox($x, $y, $w * 0.26, $h, $texto, $aFont, 'T', 'L', 0, '');
         $x += $w * 0.26;
 
-        $texto = !empty($this->ICMS->getElementsByTagName("vBC")->item(0)->nodeValue) ?
-            number_format($this->pSimpleGetValue($this->ICMS, "vBC"), 2, ",", ".") : '';
+        //BASE DE CALCULO //VALTER
+        //$texto = ( !is_null($this->ICMS) && !empty($this->ICMS->getElementsByTagName("vBC")->item(0)->nodeValue) ) ? //VALTER
+        //    number_format($this->pSimpleGetValue($this->ICMS, "vBC"), 2, ",", ".") : '';
+        $texto = $vBC;
         $aFont = $this->formatNegrito;
         $this->pTextBox($x, $y, $w * $wCol02, $h, $texto, $aFont, 'T', 'L', 0, '');
         $x += $w * $wCol02;
 
-        $texto = !empty($this->ICMS->getElementsByTagName("pICMS")->item(0)->nodeValue) ?
-            number_format($this->pSimpleGetValue($this->ICMS, "pICMS"), 2, ",", ".") : '';
+        //ALÍQ ICMS //VALTER
+        //$texto = ( !is_null($this->ICMS) && !empty($this->ICMS->getElementsByTagName("pICMS")->item(0)->nodeValue) ) ? //VALTER
+        //    number_format($this->pSimpleGetValue($this->ICMS, "pICMS"), 2, ",", ".") : '';
+        $texto = $pICMS;
         $aFont = $this->formatNegrito;
         $this->pTextBox($x, $y, $w * $wCol02, $h, $texto, $aFont, 'T', 'L', 0, '');
         $x += $w * $wCol02;
 
-        $texto = !empty($this->ICMS->getElementsByTagName("vICMS")->item(0)->nodeValue) ?
-            number_format($this->pSimpleGetValue($this->ICMS, "vICMS"), 2, ",", ".") : '';
+        //VALOR ICMS //VALTER
+        //$texto = ( !is_null($this->ICMS) && !empty($this->ICMS->getElementsByTagName("vICMS")->item(0)->nodeValue) ) ? //VALTER
+        //    number_format($this->pSimpleGetValue($this->ICMS, "vICMS"), 2, ",", ".") : '';
+        $texto = $vICMS;
         $aFont = $this->formatNegrito;
         $this->pTextBox($x, $y, $w * $wCol02, $h, $texto, $aFont, 'T', 'L', 0, '');
         $x += $w * $wCol02;
 
-        $texto = !empty($this->ICMS->getElementsByTagName("pRedBC")->item(0)->nodeValue) ?
-            number_format($this->pSimpleGetValue($this->ICMS, "pRedBC"), 2, ",", ".").'%' :'';
+        //% RED. BC ICMS //VALTER
+        //$texto = ( !is_null($this->ICMS) && !empty($this->ICMS->getElementsByTagName("pRedBC")->item(0)->nodeValue) ) ? //VALTER
+        //    number_format($this->pSimpleGetValue($this->ICMS, "pRedBC"), 2, ",", ".").'%' :'';
+        $texto = $pRedBC;
         $aFont = $this->formatNegrito;
         $this->pTextBox($x, $y, $w * $wCol02, $h, $texto, $aFont, 'T', 'L', 0, '');
 
@@ -2193,7 +2304,7 @@ class Dacte extends Common
         $yIniDados = $y;
 
         $x += $w * 0.07;
-        $texto = $descr2;
+        $texto = $descr2; // COLUNA 'CNPJ/CHAVE/OBS' DA ESQUERDA //VALTER
         $aFont = $this->formatPadrao;
         $this->pTextBox($x, $y, $w * 0.23, $h, $texto, $aFont, 'T', 'L', 0, '');
 
@@ -2219,7 +2330,7 @@ class Dacte extends Common
         $this->pTextBox($x, $y, $w * 0.10, $h, $texto, $aFont, 'T', 'L', 0, '');
 
         $x += $w * 0.08;
-        $texto = $descr2;
+        $texto = $descr2; // COLUNA 'CNPJ/CHAVE/OBS' DA DIREITA //VALTER
         $aFont = $this->formatPadrao;
         $this->pTextBox($x, $y, $w * 0.23, $h, $texto, $aFont, 'T', 'L', 0, '');
 
@@ -2264,21 +2375,37 @@ class Dacte extends Common
             $auxX += $w * 0.15;
         }
 
+        //VALTER - calcula os arrays e calcula número de páginas pelos totais dos documentos
         foreach ($this->infNFe as $k => $d) {
             $chaveNFe = $this->infNFe->item($k)->getElementsByTagName('chave')->item(0)->nodeValue;
             $this->arrayNFe[] = $chaveNFe;
         }
-        if (count($this->arrayNFe) >15) {
-            $this->flagDocOrigContinuacao = 1;
-            $totPag = '2';
-        } else {
-            $totPag = '1';
+        foreach ($this->idDocAntEle as $k => $d) {
+            //tem de ser tratado a tag da chave //$chaveCTe = $this->idDocAntEle->item($k)->getElementsByTagName('chave')->item(0)->nodeValue;
+            $tmpchave = $this->idDocAntEle->item($k)->getElementsByTagName('chave');
+            $tmpchCTe = $this->idDocAntEle->item($k)->getElementsByTagName('chCTe');
+
+            if ($tmpchave && $tmpchave->length > 0) {
+                $chaveCTe = $tmpchave->item(0)->nodeValue;
+            } elseif ($tmpchCTe && $tmpchCTe->length > 0) {
+                $chaveCTe = $tmpchCTe->item(0)->nodeValue;
+            }
+
+            $this->arrayIdDocAntEle[] = $chaveCTe;
         }
-        $totPag = count($this->arrayNFe) >15 ? '2' : '1';
-        $r = $this->zCabecalho(1, 1, '1', $totPag);
+        $totalDocs = (count($this->arrayNFe) + count($this->arrayIdDocAntEle));
+        
+        //if (count($this->arrayNFe) >15) { //VALTER - COMENTADO
+        //    $this->flagDocOrigContinuacao = 1;
+        //    $totPag = '2';
+        //} else {
+        //    $totPag = '1';
+        //}
+        //$totPag = count($this->arrayNFe) >15 ? '2' : '1'; //VALTER
+        //$r = $this->zCabecalho(1, 1, '1', $totPag); //VALTER
         $contador = 0;
         while ($contador < count($this->arrayNFe)) {
-            if ($contador == 15) {
+            if ($contador == 16) { //VALTER
                 break;
             }
             $tp = 'NF-e';
@@ -2313,6 +2440,62 @@ class Dacte extends Common
             $auxX += $w * 0.15;
             $contador++;
         }
+
+        //VALTER
+        // COLUNA DE DOCUMENTOS DE TRANSPORTE ANTERIORES
+        $contador = 0;
+        while ($contador < count($this->arrayIdDocAntEle)) {
+            if ( ($contador + count($this->arrayNFe)) == 16) {
+                break;
+            }
+            $chaveCTe = $this->arrayIdDocAntEle[$contador];
+            $numCTe = substr($chaveCTe, 25, 9);
+            $serieCTe = substr($chaveCTe, 22, 3);
+            $doc = $serieCTe . '/' . $numCTe;
+            //$tp = 'CT-e';
+            $tp = substr($chaveCTe, 20, 2); //padrão 57 = CT-e
+            if ($tp == '57'){
+                $tp = 'CT-e';
+            } elseif ($tp == '55'){
+                $tp = 'NF-e';
+            }
+            if ($auxX > $w * 0.90) {
+                $yIniDados = $yIniDados + 3.5;
+                $auxX = $oldX;
+            }
+            $texto = $tp;
+            $aFont = array(
+                'font' => $this->fontePadrao,
+                'size' => 7,
+                'style' => '');
+            $this->pTextBox($auxX, $yIniDados, $w * 0.10, $h, $texto, $aFont, 'T', 'L', 0, '');
+            $auxX += $w * 0.07;
+            $texto = $chaveCTe;
+            $aFont = array(
+                'font' => $this->fontePadrao,
+                'size' => 7,
+                'style' => '');
+            $this->pTextBox($auxX, $yIniDados, $w * 0.27, $h, $texto, $aFont, 'T', 'L', 0, '');
+            $auxX += $w * 0.28;
+            $texto = $doc;
+            $aFont = array(
+                'font' => $this->fontePadrao,
+                'size' => 7,
+                'style' => '');
+            $this->pTextBox($auxX, $yIniDados, $w * 0.30, $h, $texto, $aFont, 'T', 'L', 0, '');
+            $auxX += $w * 0.15;
+            $contador++;
+        }
+
+        $totalDocs = (count($this->arrayNFe) + count($this->arrayIdDocAntEle));
+        //VALTER - calcula número de páginas pelos totais dos documentos
+        if ($totalDocs >15) {
+            $this->flagDocOrigContinuacao = 1;
+            $totPag = '2';
+        } else {
+            $totPag = '1';
+        }
+        $r = $this->zCabecalho(1, 1, '1', $totPag);
 
         foreach ($this->infOutros as $k => $d) {
             $temp = $this->infOutros->item($k);
@@ -2375,10 +2558,16 @@ class Dacte extends Common
         //$h = 6 + 3; // de altura do texto (primeira linha
         //$h = 9 + 3.5 ;// segunda linha
         //$h = 9 + 3.5+ 3.5 ;// segunda linha
-        $h = (( ( count($this->arrayNFe)/2 ) - 9) * 3.5)+9;
-        if (count($this->arrayNFe)%2 !=0) {
-            $h = $h+3.5;
-        } // Caso tenha apenas 1 registro na ultima linha
+
+        //VALTER - calcula o total dos documentos
+        //$totalDocs = (count($this->arrayNFe) + count($this->arrayIdDocAntEle));
+
+        //VALTER
+        $h = 35;
+        //$h += (( ( $totalDocs/2 ) - 9) * 3.5)+9;
+        //if ($totalDocs%2 !=0) {
+        //    $h = $h+3.5;
+        //} // Caso tenha apenas 1 registro na ultima linha
 
         $texto = 'DOCUMENTOS ORIGINÁRIOS - CONTINUACÃO';
         $aFont = $this->formatPadrao;
@@ -2395,7 +2584,7 @@ class Dacte extends Common
         $yIniDados = $y;
 
         $x += $w * 0.07; // COLUNA CNPJ/CHAVE/OBS
-        $texto = $descr2;
+        $texto = $descr2; // COLUNA 'CNPJ/CHAVE/OBS' DA ESQUERDA //VALTER
         $aFont = $this->formatPadrao;
         $this->pTextBox($x, $y, $w * 0.23, $h, $texto, $aFont, 'T', 'L', 0, '');
 
@@ -2421,7 +2610,7 @@ class Dacte extends Common
         $this->pTextBox($x, $y, $w * 0.10, $h, $texto, $aFont, 'T', 'L', 0, '');
 
         $x += $w * 0.08;
-        $texto = $descr2;
+        $texto = $descr2;// COLUNA 'CNPJ/CHAVE/OBS' DA DIREITA //VALTER
         $aFont = $this->formatPadrao;
         $this->pTextBox($x, $y, $w * 0.23, $h, $texto, $aFont, 'T', 'L', 0, '');
 
@@ -2432,8 +2621,8 @@ class Dacte extends Common
         $auxX = $oldX;
         $yIniDados += 3;
 
-        $contador = 16;
-        for ($contador = 16; $contador < count($this->arrayNFe); $contador++) {
+        $contador = 16; //VALTER
+        for ($contador = $contador; $contador < count($this->arrayNFe); $contador++) {
             $tp = 'NF-e';
             $chaveNFe = $this->arrayNFe[$contador];
             $numNFe = substr($chaveNFe, 25, 9);
@@ -2451,6 +2640,48 @@ class Dacte extends Common
             $this->pTextBox($auxX, $yIniDados, $w * 0.10, $h, $texto, $aFont, 'T', 'L', 0, '');
             $auxX += $w * 0.07;
             $texto = $chaveNFe;
+            $aFont = array(
+                'font' => $this->fontePadrao,
+                'size' => 7,
+                'style' => '');
+            $this->pTextBox($auxX, $yIniDados, $w * 0.27, $h, $texto, $aFont, 'T', 'L', 0, '');
+            $auxX += $w * 0.28;
+            $texto = $doc;
+            $aFont = array(
+                'font' => $this->fontePadrao,
+                'size' => 7,
+                'style' => '');
+            $this->pTextBox($auxX, $yIniDados, $w * 0.30, $h, $texto, $aFont, 'T', 'L', 0, '');
+            $auxX += $w * 0.15;
+        }
+
+        //VALTER
+        // COLUNA DE DOCUMENTOS DE TRANSPORTE ANTERIORES
+        $contador = 16 - count($this->arrayNFe); //$totalDocs
+        for ($contador = $contador; $contador < count($this->arrayIdDocAntEle); $contador++) {
+            $chaveCTe = $this->arrayIdDocAntEle[$contador];
+            $numCTe = substr($chaveCTe, 25, 9);
+            $serieCTe = substr($chaveCTe, 22, 3);
+            $doc = $serieCTe . '/' . $numCTe;
+            //$tp = 'CT-e';
+            $tp = substr($chaveCTe, 20, 2); //padrão 57 = CT-e
+            if ($tp == '57'){
+                $tp = 'CT-e';
+            } elseif ($tp == '55'){
+                $tp = 'NF-e';
+            }
+            if ($auxX > $w * 0.90) {
+                $yIniDados = $yIniDados + 3.5;
+                $auxX = $oldX;
+            }
+            $texto = $tp;
+            $aFont = array(
+                'font' => $this->fontePadrao,
+                'size' => 7,
+                'style' => '');
+            $this->pTextBox($auxX, $yIniDados, $w * 0.10, $h, $texto, $aFont, 'T', 'L', 0, '');
+            $auxX += $w * 0.07;
+            $texto = $chaveCTe;
             $aFont = array(
                 'font' => $this->fontePadrao,
                 'size' => 7,
@@ -2578,7 +2809,7 @@ class Dacte extends Common
      */
     protected function zLocalEntrega()
     {
-        $locEntX = $this->dest->getElementsByTagName('locEnt');
+        $locEntX = !is_null($this->dest) ? $this->dest->getElementsByTagName('locEnt') : ''; //VALTER
         if ($locEntX->length > 0) {
             $locEnt = $locEntX->item(0);
             $output = "Entrega: " . $output = $this->zFormatCNPJCPF($locEnt);

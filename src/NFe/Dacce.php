@@ -55,6 +55,7 @@ class Dacce extends Common
     protected $CPFDest = '';
     protected $dhRegEvento;
     protected $nProt;
+    protected $TextoRodape = ''; //VALTER
     
     private $dom;
     private $procEventoNFe;
@@ -65,7 +66,7 @@ class Dacce extends Common
 
     /**
      * Construtor recebe parametro pra impressao
-     * @param string $docXML      conteudo do Arquivo XML
+     * @param string $docXML      Arquivo XML (diretório ou string)
      * @param string $sOrientacao (Opcional) Orientação da impressão P-retrato L-Paisagem
      * @param string $sPapel      Tamanho do papel (Ex. A4)
      * @param string $sPathLogo   Caminho para o arquivo do logo
@@ -116,13 +117,25 @@ class Dacce extends Common
         }
         // se for passado o xml
         if (!empty($this->xml)) {
+            if (is_file($this->xml)) {
+                $this->xml = file_get_contents($this->xml);
+            }
             $this->dom = new Dom();
             $this->dom->loadXML($this->xml);
-            $this->procEventoNFe = $this->dom->getElementsByTagName("procEventoNFe")->item(0);
-            $this->evento = $this->procEventoNFe->getElementsByTagName("evento")->item(0);
-            $this->retEvento = $this->procEventoNFe->getElementsByTagName("retEvento")->item(0);
+            //$this->procEventoNFe = $this->dom->getElementsByTagName("procEventoNFe")->item(0); //VALTER
+            
+            //infEvento de envio   //VALTER
+            $this->evento = $this->dom->getElementsByTagName("evento")->item(0); //VALTER  //$this->evento = $this->procEventoNFe->getElementsByTagName("evento")->item(0); //VALTER
             $this->infEvento = $this->evento->getElementsByTagName("infEvento")->item(0);
-            $this->retInfEvento = $this->retEvento->getElementsByTagName("infEvento")->item(0);
+            
+            //infEvento de retorno //VALTER
+            $this->retEvento = $this->dom->getElementsByTagName("retEvento")->item(0); //VALTER  $this->retEvento = $this->procEventoNFe->getElementsByTagName("retEvento")->item(0); //VALTER
+            $this->retInfEvento = ''; //VALTER
+            if ($this->retEvento != '') //VALTER
+            {
+                $this->retInfEvento = $this->retEvento->getElementsByTagName("infEvento")->item(0); //VALTER //$this->retInfEvento = $this->retEvento->getElementsByTagName("infEvento")->item(0); //VALTER
+            }
+
             $tpEvento = $this->infEvento->getElementsByTagName("tpEvento")->item(0)->nodeValue;
             if ($tpEvento != '110110') {
                 $this->errMsg = 'Um evento de CC-e deve ser passado.';
@@ -136,16 +149,20 @@ class Dacce extends Common
             $this->xCorrecao = $this->infEvento->getElementsByTagName("xCorrecao")->item(0)->nodeValue;
             $this->xCondUso = $this->infEvento->getElementsByTagName("xCondUso")->item(0)->nodeValue;
             $this->dhEvento = $this->infEvento->getElementsByTagName("dhEvento")->item(0)->nodeValue;
-            $this->cStat = $this->retInfEvento->getElementsByTagName("cStat")->item(0)->nodeValue;
-            $this->xMotivo = $this->retInfEvento->getElementsByTagName("xMotivo")->item(0)->nodeValue;
-            $this->CNPJDest = !empty($this->retInfEvento->getElementsByTagName("CNPJDest")->item(0)->nodeValue)
-                ? $this->retInfEvento->getElementsByTagName("CNPJDest")->item(0)->nodeValue
-                : '';
-            $this->CPFDest = !empty($this->retInfEvento->getElementsByTagName("CPFDest")->item(0)->nodeValue)
-                ? $this->retInfEvento->getElementsByTagName("CPFDest")->item(0)->nodeValue
-                : '';
-            $this->dhRegEvento = $this->retInfEvento->getElementsByTagName("dhRegEvento")->item(0)->nodeValue;
-            $this->nProt = $this->retInfEvento->getElementsByTagName("nProt")->item(0)->nodeValue;
+            
+            if ($this->retInfEvento != '') //VALTER
+            {
+                $this->cStat = $this->retInfEvento->getElementsByTagName("cStat")->item(0)->nodeValue;
+                $this->xMotivo = $this->retInfEvento->getElementsByTagName("xMotivo")->item(0)->nodeValue;
+                $this->CNPJDest = !empty($this->retInfEvento->getElementsByTagName("CNPJDest")->item(0)->nodeValue)
+                    ? $this->retInfEvento->getElementsByTagName("CNPJDest")->item(0)->nodeValue
+                    : '';
+                $this->CPFDest = !empty($this->retInfEvento->getElementsByTagName("CPFDest")->item(0)->nodeValue)
+                    ? $this->retInfEvento->getElementsByTagName("CPFDest")->item(0)->nodeValue
+                    : '';
+                $this->dhRegEvento = $this->retInfEvento->getElementsByTagName("dhRegEvento")->item(0)->nodeValue;
+                $this->nProt = $this->retInfEvento->getElementsByTagName("nProt")->item(0)->nodeValue;
+            }
         }
     }
 
@@ -155,7 +172,7 @@ class Dacce extends Common
      * @param string $papel
      * @param string $logoAlign
      */
-    public function monta($orientacao = 'P', $papel = 'A4', $logoAlign = 'C')
+    public function monta($orientacao = '', $papel = 'A4', $logoAlign = 'C')
     {
         $this->orientacao = $orientacao;
         $this->papel = $papel;
@@ -163,15 +180,6 @@ class Dacce extends Common
         $this->pBuildDACCE();
     }
 
-    /**
-     * Dados brutos do PDF
-     * @return string
-     */
-    public function render()
-    {
-        return $this->printDACCE('', 'S');
-    }
-    
     /**
      * pBuildDACCE
      */
@@ -266,13 +274,8 @@ class Dacce extends Common
         $this->pTextBox($x, $y, $w, $h);
         $texto = 'IDENTIFICAÇÃO DO EMITENTE';
         $this->pTextBox($x, $y, $w, 5, $texto, $aFont, 'T', 'C', 0, '');
-        if (!empty($this->logomarca)) {
+        if (is_file($this->logomarca)) {
             $logoInfo = getimagesize($this->logomarca);
-            $type = strtolower(explode('/', $logoInfo['mime'])[1]);
-            if ($type == 'png') {
-                $this->logomarca = $this->imagePNGtoJPG($this->logomarca);
-                $type == 'jpg';
-            }
             // largura da imagem em mm
             $logoWmm = ($logoInfo[0] / 72) * 25.4;
             // altura da imagem em mm
@@ -305,8 +308,7 @@ class Dacce extends Common
                 $y1 = round($h / 3 + $y, 0);
                 $tw = round(2 * $w / 3, 0);
             }
-            $type = (substr($this->logomarca, 0, 7) === 'data://') ? 'jpg' : null;
-            $this->pdf->Image($this->logomarca, $xImg, $yImg, $nImgW, $nImgH, $type);
+            $this->pdf->Image($this->logomarca, $xImg, $yImg, $nImgW, $nImgH);
         } else {
             $x1 = $x;
             $y1 = round($h / 3 + $y, 0);
@@ -363,8 +365,11 @@ class Dacce extends Common
         $texto = 'Criado em : ' . date('d/m/Y   H:i:s', $tsHora);
         $this->pTextBox($x, $y + 20, $w2, 8, $texto, $aFont, 'T', 'L', 0, '');
         $tsHora = $this->pConvertTime($this->dhRegEvento);
-        $texto = 'Prococolo: ' . $this->nProt . '  -  Registrado na SEFAZ em: ' . date('d/m/Y   H:i:s', $tsHora);
-        $this->pTextBox($x, $y + 25, $w2, 8, $texto, $aFont, 'T', 'L', 0, '');
+        if ($this->nProt != '') //VALTER
+        {
+            $texto = 'Prococolo: ' . $this->nProt . '  -  Registrado na SEFAZ em: ' . date('d/m/Y   H:i:s', $tsHora);
+            $this->pTextBox($x, $y + 25, $w2, 8, $texto, $aFont, 'T', 'L', 0, '');
+        }
         // ####################################################
         $x = $oldX;
         $this->pTextBox($x, $y1, $maxW, 40);
@@ -380,9 +385,9 @@ class Dacce extends Common
         );
         $this->pTextBox($x + 5, $y1, $maxW - 5, 20, $texto, $aFont, 'T', 'L', 0, '', false);
         // ############################################
+        $texto = ''; //VALTER - limpando para não repetir a informação acima (porque o "IF" do CNPF/CPF pode falhar)
         $x = $oldX;
         $y = $y1;
-        $texto = '';
         if ($this->CNPJDest != '') {
             $texto = 'CNPJ do Destinatário: ' . $this->pFormat($this->CNPJDest, "##.###.###/####-##");
         }
@@ -481,6 +486,17 @@ class Dacce extends Common
     }
 
     /**
+     * setTextoRodape
+     * @param string $newTextoRodape
+     * @return none
+     * Author: VALTER
+     */
+    public function setTextoRodape($newTextoRodape)
+    {
+        $this->TextoRodape = $newTextoRodape;
+    }
+
+    /**
      * Monta o rodapé
      * @param number $x
      * @param number $y
@@ -498,6 +514,7 @@ class Dacce extends Common
         );
         $this->pTextBox($x, $y, $w, 20, $texto, $aFont, 'T', 'C', 0, '', false);
         $y = $this->hPrint - 4;
+        /* //VALTER
         $texto = "Impresso em  " . date('d/m/Y   H:i:s');
         $w = $this->wPrint - 4;
         $aFont = array(
@@ -506,13 +523,16 @@ class Dacce extends Common
             'style' => 'I'
         );
         $this->pTextBox($x, $y, $w, 4, $texto, $aFont, 'T', 'L', 0, '');
-        $texto = "Dacce ver. " . $this->version . "  Powered by NFePHP (GNU/GPLv3 GNU/LGPLv3) © www.nfephp.org";
+        $texto = "Dacce ver. " . $this->version . "  Powered by NFePHP (GNU/GPLv3 GNU/LGPLv3) © www.nfephp.org"; //VALTER
+        */
+        $texto = $this->TextoRodape; //VALTER
         $aFont = array(
             'font' => $this->fontePadrao,
             'size' => 6,
             'style' => 'I'
         );
-        $this->pTextBox($x, $y, $w, 4, $texto, $aFont, 'T', 'R', 0, 'http://www.nfephp.org');
+        //$this->pTextBox($x, $y, $w, 4, $texto, $aFont, 'T', 'R', 0, 'http://www.nfephp.org'); //VALTER
+        $this->pTextBox($x, $y, $w, 4, $texto, $aFont, 'T', 'R', 0, ''); //VALTER
     }
 
     /**
@@ -540,16 +560,5 @@ class Dacce extends Common
             $this->pBuildDACCE();
         }
         return $this->pdf->Output($nome, $destino);
-    }
-    
-    private function imagePNGtoJPG($original)
-    {
-        $image = imagecreatefrompng($original);
-        ob_start();
-        imagejpeg($image, null, 100);
-        imagedestroy($image);
-        $stringdata = ob_get_contents(); // read from buffer
-        ob_end_clean();
-        return 'data://text/plain;base64,'.base64_encode($stringdata);
     }
 }

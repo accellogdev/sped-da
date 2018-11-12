@@ -6,31 +6,26 @@ require_once '../bootstrap.php';
 use NFePHP\DA\NFe\Dacce;
 use NFePHP\DA\Legacy\FilesFolders;
 
-$xml = '/var/www/sped/sped-da/examples/xml/110110-53181011028793000173550010000066701204276800-1-procEventoNfe.xml';
-
-$logo = 'data://text/plain;base64,'. base64_encode(file_get_contents('images/logo.jpg'));
+$xml = 'xml/proccce.xml';
 
 $aEnd = array(
-    'razao' => 'DF TRANSPORTES E LOGISTICA EIRELI',
-    'logradouro' => 'ADE Conjunto 28',
-    'numero' => '01',
+    'razao' => 'QQ Comercio e Ind. Ltda',
+    'logradouro' => 'Rua vinte e um de março',
+    'numero' => '200',
     'complemento' => 'sobreloja',
-    'bairro' => 'Area de Desenvolvimento Economico Aguas Claras',
-    'CEP' => '71991360',
-    'municipio' => 'Brasilia',
-    'UF' => 'DF',
-    'telefone' => '6130220802',
-    'email' => '' 
+    'bairro' => 'Nova Onda',
+    'CEP' => '99999-999',
+    'municipio' => 'Onda',
+    'UF' => 'MG',
+    'telefone' => '33333-3333',
+    'email' => 'qq@gmail.com' 
 );
 
 try {
     $docxml = FilesFolders::readFile($xml);
-    $dacce = new Dacce($docxml, 'P', 'A4', $logo, 'I', $aEnd);
+    $dacce = new Dacce($docxml, 'P', 'A4', 'images/logo.jpg', 'I', $aEnd);
     $id = $dacce->chNFe . '-CCE';
-    $pdf = $dacce->render();
-    header('Content-Type: application/pdf');
-    echo $pdf;
-    
+    $teste = $dacce->printDACCE($id.'.pdf', 'I');
 } catch (InvalidArgumentException $e) {
     echo $e->getMessage();
 } catch (RuntimeException $e) {

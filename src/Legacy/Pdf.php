@@ -2,10 +2,11 @@
 
 namespace NFePHP\DA\Legacy;
 
-use NFePHP\DA\Legacy\FPDF\Fpdf as Fpdf;
+use NFePHP\DA\Legacy\FPDF\Fpdf;
 
 class Pdf extends Fpdf
 {
+    
     private $t128;                                             // tabela de codigos 128
     private $abcSet="";                                        // conjunto de caracteres legiveis em 128
     private $aSet="";                                          // grupo A do conjunto de de caracteres legiveis
@@ -161,6 +162,7 @@ class Pdf extends Fpdf
     }
 
     /**
+     * Code128
      * Imprime barcode 128
      */
     public function code128($x, $y, $code, $w, $h)
@@ -235,6 +237,7 @@ class Pdf extends Fpdf
     }
 
     /**
+     * rotate
      * Rotaciona para impressão paisagem (landscape)
      * @param   number $angle
      * @param   number $x
@@ -275,6 +278,7 @@ class Pdf extends Fpdf
     }
 
     /**
+     * roundedRect
      * Desenha um retangulo com cantos arredondados
      * @param   number $x
      * @param   number $y
@@ -334,6 +338,7 @@ class Pdf extends Fpdf
     }
     
     /**
+     * arc
      * Desenha o arco para arredondar o canto do retangulo
      * @param   number $x1
      * @param   number $y1
@@ -359,6 +364,7 @@ class Pdf extends Fpdf
     }
     
     /**
+     * dashedRect
      * Desenha um retangulo com linhas tracejadas
      * @param   number $x1
      * @param   number $y1
@@ -393,9 +399,10 @@ class Pdf extends Fpdf
                 }
             }
         }
-    }
+    }//fim DashedRect
 
     /**
+     * drawTextBox
      * Monta uma caixa de texto
      * @param   string  $strText
      * @param   number  $w
@@ -428,6 +435,7 @@ class Pdf extends Fpdf
     }
     
     /**
+     * _drawRows
      * Insere linhas de texto na caixa
      * @param   number  $w
      * @param   number  $h
@@ -564,6 +572,7 @@ class Pdf extends Fpdf
     }
     
     /**
+     * WordWrap
      * Quebra o texto para caber na caixa
      * @param   type $text
      * @param   type $maxwidth
@@ -614,6 +623,7 @@ class Pdf extends Fpdf
     }
     
     /**
+     * CellFit
      * Celula com escala horizontal caso o texto seja muito largo
      * @param   number  $w
      * @param   number  $h
@@ -668,6 +678,7 @@ class Pdf extends Fpdf
     }
 
     /**
+     * CellFitScale
      * Celula com escalamento horizontal somente se necessário
      * @param   number  $w
      * @param   number  $h
@@ -684,6 +695,7 @@ class Pdf extends Fpdf
     }
 
     /**
+     * CellFitScaleForce
      * Celula com escalamento forçado
      * @param   number  $w
      * @param   number  $h
@@ -708,6 +720,7 @@ class Pdf extends Fpdf
     }
 
     /**
+     * CellFitSpace
      * Celula com espaçamento de caracteres somente se necessário
      * @param   number  $w
      * @param   number  $h
@@ -724,6 +737,7 @@ class Pdf extends Fpdf
     }
     
     /**
+     * CellFitSpaceForce
      * Celula com espaçamento de caracteres forçado
      * @param   number  $w
      * @param   number  $h
@@ -748,6 +762,7 @@ class Pdf extends Fpdf
     }
     
     /**
+     * _MBGetStringLength
      * Patch para trabalhar com textos de duplo byte CJK
      * @param   string $s
      * @return  int
@@ -772,6 +787,7 @@ class Pdf extends Fpdf
     }
 
     /**
+     * DashedLine
      * Desenha uma linha horizontal tracejada com o FPDF
      * @param   number $x Posição horizontal inicial, em mm
      * @param   number $y Posição vertical inicial, em mm
@@ -784,7 +800,7 @@ class Pdf extends Fpdf
     {
         $this->setDrawColor(110);
         $this->setLineWidth($h);
-        $wDash = ($w/$n)/2;
+        $wDash = ($w/$n)/2; // comprimento dos traços
         for ($i=$x; $i<=$x+$w; $i += $wDash+$wDash) {
             for ($j=$i; $j<= ($i+$wDash); $j++) {
                 if ($j <= ($x+$w-1)) {
@@ -795,7 +811,8 @@ class Pdf extends Fpdf
         $this->setDrawColor(0);
     }
 
-   /**
+    /**
+    * DashedVLine
     * Desenha uma linha vertical tracejada com o FPDF
     * @param   number $x      Posição horizontal inicial, em mm
     * @param   number $y      Posição vertical inicial, em mm
@@ -807,6 +824,7 @@ class Pdf extends Fpdf
     public function dashedVLine($x, $y, $w, $yfinal, $n)
     {
         $this->setLineWidth($w);
+        //Organizando valores
         if ($y > $yfinal) {
             $aux = $yfinal;
             $yfinal = $y;

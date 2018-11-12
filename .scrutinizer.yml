@@ -37,7 +37,7 @@ build:
                     format: 'php-clover'
     environment:
         php:
-            version: 7.2
+            version: 7.0.8
         mysql: false
         postgresql: false
         redis: false

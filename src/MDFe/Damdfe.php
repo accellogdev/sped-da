@@ -15,7 +15,8 @@ namespace NFePHP\DA\MDFe;
  * @author    Leandro C. Lopez <leandro dot castoldi at gmail dot com>
  */
 
-use NFePHP\DA\Legacy\Dom;
+//use NFePHP\Common\Dom\Dom; //VALTER
+use NFePHP\DA\Legacy\Dom; //VALTER
 use NFePHP\DA\Legacy\Common;
 use NFePHP\DA\Legacy\Pdf;
 
@@ -61,6 +62,9 @@ class Damdfe extends Common
     private $infEvento;
     private $retEvento;
     private $rinfEvento;
+
+    protected $TextoRodape = ''; //VALTER
+    
     /**
      * __construct
      *
@@ -171,6 +175,7 @@ class Damdfe extends Common
         if ($this->dom->getElementsByTagName("qCT")->item(0) != "") {
             $this->qCT = $this->dom->getElementsByTagName("qCT")->item(0)->nodeValue;
         }
+        $this->cUnid = $this->dom->getElementsByTagName("cUnid")->item(0)->nodeValue; //VALTER
         $this->qCarga = $this->dom->getElementsByTagName("qCarga")->item(0)->nodeValue;
         $this->infModal = $this->dom->getElementsByTagName("infModal")->item(0);
         $this->rodo = $this->dom->getElementsByTagName("rodo")->item(0);
@@ -178,6 +183,19 @@ class Damdfe extends Common
         if ($this->dom->getElementsByTagName('CIOT')->item(0) != "") {
             $this->ciot = $this->dom->getElementsByTagName('CIOT')->item(0)->nodeValue;
         }
+        //infContratante - VALTER
+        $this->infContratante = "";
+        if ($this->dom->getElementsByTagName('infContratante')->item(0) != "") {
+            //$this->infContratante = $this->dom->getElementsByTagName('infContratante')->item(0)->nodeValue; //esta caso queira pegar a string
+            $this->infContratante = $this->dom->getElementsByTagName('infContratante')->item(0);
+        }
+        //infContratante - VALTER
+        //seg - VALTER
+        $this->seg = ""; //seguro
+        if ($this->dom->getElementsByTagName('seg')->item(0) != "") {
+            $this->seg = $this->dom->getElementsByTagName('seg')->item(0);
+        }
+        //seg - VALTER
         $this->veicTracao = $this->dom->getElementsByTagName("veicTracao")->item(0);
         $this->veicReboque = $this->dom->getElementsByTagName("veicReboque");
         $this->valePed = "";
@@ -256,6 +274,8 @@ class Damdfe extends Common
         }
         //coloca os dados da MDFe
         $y = $this->bodyMDFe($x, $y);
+        //coloca os campos de seguro //VALTER
+        $y = $this->seguroMDFe($x, $y); //VALTER
         //coloca os dados da MDFe
         $y = $this->footerMDFe($x, $y);
     } //fim buildCCe
@@ -519,9 +539,9 @@ class Damdfe extends Common
         $y = $y + 8;
         $this->pTextBox($x, $y, $maxW, 20);
         $bH = 16;
-        $w = $maxW;
+        $bW = 75; //$maxW - 100; //VALTER
         $this->pdf->SetFillColor(0, 0, 0);
-        $this->pdf->Code128($x + 5, $y+2, $this->chMDFe, $maxW - 10, $bH);
+        $this->pdf->Code128($x+(($w-$bW)/2), $y+2, $this->chMDFe, $bW, $bH); //VALTER $bW-10 //$this->pdf->Code128($x+5 + 50, $y+2, $this->chMDFe, $bW, $bH);
         $this->pdf->SetFillColor(255, 255, 255);
         $y = $y + 22;
         $this->pTextBox($x, $y, $maxW, 10);
@@ -692,12 +712,51 @@ class Damdfe extends Common
         $this->pTextBox($x1, $y+4, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
         $x1 += $x2;
         $this->pTextBox($x1, $y, $x2, 12);
-        $texto = 'Peso Total (Kg)';
+        $texto = 'Peso Total '.$this->zUnidadeCarga();
         $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
         $this->pTextBox($x1, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
         $texto = number_format($this->qCarga, 4, ', ', '.');
         $aFont = array('font'=>$this->fontePadrao, 'size'=>10, 'style'=>'');
         $this->pTextBox($x1, $y+4, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
+
+        //CIOT //VALTER
+        $x1 += $x2;
+        $this->pTextBox($x1, $y, $x2, 12);
+        $texto = 'CIOT';
+        $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
+        $this->pTextBox($x1, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
+        $texto = $this->ciot;
+        $aFont = array('font'=>$this->fontePadrao, 'size'=>10, 'style'=>'');
+        $this->pTextBox($x1, $y+4, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
+        //CIOT //VALTER
+
+        //CONTRATANTE //VALTER
+        if ($this->infContratante != '') {
+            $x1 += $x2;
+            $x2 = ($maxW - ($x2 * 4));
+            $this->pTextBox($x1, $y, $x2, 12); //caixa
+            $texto = 'Contratante';
+            $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
+            $this->pTextBox($x1, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
+
+            if (! empty($this->infContratante->getElementsByTagName("CNPJ")->item(0)->nodeValue)) {
+                $texto = $this->pFormat(
+                    $this->infContratante->getElementsByTagName("CNPJ")->item(0)->nodeValue,
+                    "###.###.###/####-##"
+                );
+            } else {
+                $texto = ! empty($this->infContratante->getElementsByTagName("CPF")->item(0)->nodeValue) ?
+                    $this->pFormat(
+                        $this->infContratante->getElementsByTagName("CPF")->item(0)->nodeValue,
+                        "###.###.###-##"
+                    ) : '';
+            }
+
+            $aFont = array('font'=>$this->fontePadrao, 'size'=>10, 'style'=>'');
+            $this->pTextBox($x1, $y+4, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
+        }
+        //CONTRATANTE //VALTER
+
         $x1 = $x;
         $y += 12;
         $yold = $y;
@@ -840,6 +899,156 @@ class Damdfe extends Common
         }
         return $altura + 7;
     }//fim bodyMDFe
+
+    /**
+     * VALTER
+     * seguroMDFe
+     *
+     * @param float $x
+     * @param float $y
+     * @return void
+     */
+    private function seguroMDFe($x, $y)
+    {
+        if ($this->seg != '') {
+            if ($this->orientacao == 'P') {
+                $maxW = $this->wPrint;
+            } else {
+                $maxW = $this->wPrint / 2;
+            }
+
+            $x2 = $maxW;
+            $x1 = $x;
+            $this->pTextBox($x1, $y, $x2, 31); //caixa
+            $y += 1;
+            $texto = 'Seguro';
+            $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'B');
+            $this->pTextBox($x1, $y, $x2, 8, $texto, $aFont, 'T', 'C', 0, '', false);
+            $y += 6;
+
+            $seg_infResp = $this->seg->getElementsByTagName("infResp")->item(0);
+            $seg_infSeg = $this->seg->getElementsByTagName("infSeg")->item(0);
+
+            //----------------
+            //Responsável
+            //----------------
+            $x2 = ($maxW / 3);
+            $x1 = $x;
+            $this->pTextBox($x1, $y, $x2, 12); //caixa
+            $texto = 'Responsável';
+            $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
+            $this->pTextBox($x1, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
+
+            $texto = '';
+            if (!empty($seg_infResp) && !empty($seg_infResp->getElementsByTagName("respSeg")->item(0)->nodeValue)) {
+                switch ($seg_infResp->getElementsByTagName("respSeg")->item(0)->nodeValue) {
+                    case 1:
+                        $texto = "(1) Emitente - ";
+                        break;
+                    case 2:
+                        $texto = "(2) Contratante - ";
+                        break;
+                }
+            }
+
+            if (!empty($seg_infResp) && !empty($seg_infResp->getElementsByTagName("CNPJ")->item(0)->nodeValue)) {
+                $texto .= $this->pFormat(
+                    $seg_infResp->getElementsByTagName("CNPJ")->item(0)->nodeValue,
+                    "###.###.###/####-##"
+                );
+            } else if (!empty($seg_infResp) && !empty($seg_infResp->getElementsByTagName("CPF")->item(0)->nodeValue)) {
+                $texto .= $this->pFormat(
+                    $seg_infResp->getElementsByTagName("CPF")->item(0)->nodeValue,
+                    "###.###.###-##"
+                );
+            }
+            $aFont = array('font'=>$this->fontePadrao, 'size'=>10, 'style'=>'');
+            $this->pTextBox($x1, $y+4, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
+
+            //----------------
+            //Seguradora
+            //----------------
+            $x1 += $x2;
+            //$x2 = ($maxW / 2)+50;
+            $x2 = ($maxW - $x1)+7;
+            $this->pTextBox($x1, $y, $x2, 12); //caixa
+            $texto = 'Seguradora';
+            $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
+            $this->pTextBox($x1, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
+
+            $texto = '';
+            if (!empty($seg_infSeg) && !empty($seg_infSeg->getElementsByTagName("CNPJ")->item(0)->nodeValue)) {
+                $texto = $this->pFormat(
+                    $seg_infSeg->getElementsByTagName("CNPJ")->item(0)->nodeValue,
+                    "###.###.###/####-##"
+                );
+            } else if (!empty($seg_infSeg) && !empty($seg_infSeg->getElementsByTagName("CPF")->item(0)->nodeValue)) {
+                $texto = $this->pFormat(
+                    $seg_infSeg->getElementsByTagName("CPF")->item(0)->nodeValue,
+                    "###.###.###-##"
+                );
+            }
+
+            if (!empty($seg_infSeg) && !empty($seg_infSeg->getElementsByTagName("xSeg")->item(0)->nodeValue)) {
+                $texto .= ' - '.$seg_infSeg->getElementsByTagName("xSeg")->item(0)->nodeValue;
+            }
+            $aFont = array('font'=>$this->fontePadrao, 'size'=>10, 'style'=>'');
+            $this->pTextBox($x1, $y+4, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
+
+            $y += 12; //nova linha
+
+            //----------------
+            //Número Apólice
+            //----------------
+            $x1 = $x;
+            $x2 = ($maxW / 4);
+            $this->pTextBox($x1, $y, $x2, 12); //caixa
+            $texto = 'Número Apólice';
+            $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
+            $this->pTextBox($x1, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
+
+            $texto = '';
+            if (!empty($this->seg->getElementsByTagName("nApol")->item(0)->nodeValue)) {
+                $texto = $this->seg->getElementsByTagName("nApol")->item(0)->nodeValue;
+            }
+            $aFont = array('font'=>$this->fontePadrao, 'size'=>10, 'style'=>'');
+            $this->pTextBox($x1, $y+4, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
+
+            //----------------
+            //Número Averbação
+            //----------------
+            $x1 += $x2;
+            $x2 = ($maxW - $x1)+7;
+            $this->pTextBox($x1, $y, $x2, 12); //caixa
+            $texto = 'Número Averbação';
+            $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
+            $this->pTextBox($x1, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
+
+            $texto = '';
+            if (! empty($this->seg->getElementsByTagName("nAver")->item(0)->nodeValue)) {
+                $texto = $this->seg->getElementsByTagName("nAver")->item(0)->nodeValue;
+            }
+            $aFont = array('font'=>$this->fontePadrao, 'size'=>10, 'style'=>'');
+            $this->pTextBox($x1, $y+4, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
+
+
+            $y += 12;
+            $y += 2;
+        }
+        return $y;
+    }
+
+    /**
+     * setTextoRodape
+     * @param string $newTextoRodape
+     * @return none
+     * Author: VALTER
+     */
+    public function setTextoRodape($newTextoRodape)
+    {
+        $this->TextoRodape = $newTextoRodape;
+    }
+
     /**
      * footerMDFe
      *
@@ -855,11 +1064,21 @@ class Damdfe extends Common
         '.$this->infCpl;
         $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
         $this->pTextBox($x, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
+        /* //VALTER
         $y = $this->hPrint -4;
         $texto = "Impresso em  ". date('d/m/Y   H:i:s');
         $w = $this->wPrint-4;
         $aFont = array('font'=>$this->fontePadrao, 'size'=>6, 'style'=>'I');
         $this->pTextBox($x, $y, $w, 4, $texto, $aFont, 'T', 'L', 0, '');
+        */
+        $texto = $this->TextoRodape;
+        $y = $this->hPrint - 4;
+        $w = $this->wPrint - 4;
+        $aFont = array(
+            'font' => $this->fontePadrao,
+            'size' => 6,
+            'style' => '');
+        $this->pTextBox($x, $y, $w, 4, $texto, $aFont, 'T', 'R', 0, '');
     }//fim footerCCe
     /**
      * printMDFe
@@ -904,4 +1123,27 @@ class Damdfe extends Common
     {
         return $this->pdf->getPdf();
     }
+
+    /**
+     * zUnidadeCarga
+     * Converte a imformação de peso contida no MDFe
+     * Author: Valter
+     *
+     * @param  string $c unidade de medida extraida da MDFe
+     * @return string
+     */
+    private function zUnidadeCarga()
+    {
+        switch ($this->cUnid) {
+            case '01':
+                $r = '(Kg)';
+                break;
+            case '02':
+                $r = '(Ton)';
+                break;
+            default:
+                $r = '';
+        }
+        return $r;
+    } //fim unidade
 }
