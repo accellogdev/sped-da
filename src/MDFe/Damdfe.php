@@ -192,12 +192,15 @@ class Damdfe extends Common
         //infContratante - VALTER
         //seg - VALTER
         $this->seg = ""; //seguro
-        if ($this->dom->getElementsByTagName('seg')->item(0) != "") {
-            $this->seg = $this->dom->getElementsByTagName('seg')->item(0);
-        }
+        $this->seg = $this->dom->getElementsByTagName('seg');
+        /*if ($this->dom->getElementsByTagName('seg') != "") {
+            $this->seg = $this->dom->getElementsByTagName('seg');
+        }*/
         //seg - VALTER
         $this->veicTracao = $this->dom->getElementsByTagName("veicTracao")->item(0);
         $this->veicReboque = $this->dom->getElementsByTagName("veicReboque");
+        //Rafael
+        $this->seg = $this->dom->getElementsByTagName("seg");
         $this->valePed = "";
         if ($this->dom->getElementsByTagName("valePed")->item(0) != "") {
             $this->valePed = $this->dom->getElementsByTagName("valePed")->item(0)->getElementsByTagName("disp");
@@ -919,121 +922,217 @@ class Damdfe extends Common
 
             $x2 = $maxW;
             $x1 = $x;
-            $this->pTextBox($x1, $y, $x2, 31); //caixa
+            $this->pTextBox($x1, $y, $x2, 7);
+            $this->pTextBox($x1, $y, $x2, 72); //caixa
             $y += 1;
             $texto = 'Seguro';
             $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'B');
             $this->pTextBox($x1, $y, $x2, 8, $texto, $aFont, 'T', 'C', 0, '', false);
             $y += 6;
 
-            $seg_infResp = $this->seg->getElementsByTagName("infResp")->item(0);
-            $seg_infSeg = $this->seg->getElementsByTagName("infSeg")->item(0);
+            //Rafael
+            $seg = $this->seg;
+            foreach ($seg as $item) {
+                $seg_infResp = $item->getElementsByTagName("infResp")->item(0);
+                $seg_infSeg = $item->getElementsByTagName("infSeg")->item(0);
+            }
+            //Linha Antiga(está funcionando)
+            //$seg_infResp = $this->seg->getElementsByTagName("infResp")->item(0);
+            //$seg_infSeg = $this->seg->getElementsByTagName("infSeg")->item(0);
 
             //----------------
             //Responsável
             //----------------
-            $x2 = ($maxW / 3);
+            $x2 = ($maxW / 3)-23;
             $x1 = $x;
-            $this->pTextBox($x1, $y, $x2, 12); //caixa
+            //$this->pTextBox($x1, $y, $x2, 12); //caixa
             $texto = 'Responsável';
             $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
             $this->pTextBox($x1, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
 
+            //Rafael
+            $i = 14; //Quantidade de Número Averbação que cabe no Campo;
+            $contador = 0;
             $texto = '';
-            if (!empty($seg_infResp) && !empty($seg_infResp->getElementsByTagName("respSeg")->item(0)->nodeValue)) {
-                switch ($seg_infResp->getElementsByTagName("respSeg")->item(0)->nodeValue) {
-                    case 1:
-                        $texto = "(1) Emitente - ";
-                        break;
-                    case 2:
-                        $texto = "(2) Contratante - ";
-                        break;
-                }
-            }
+            $altura = $y + 4;
+            /** @var \DOMNodeList $seg */
+            $seg = $this->seg;
+            //De inicio esse laço vai trazer 15 números de averbação, hoje esse número vai nos atender muito bem.
+            //Caso no futuro alguém informe mais de 15 números, dai voltamos a mexer nesse laço ou repensar em como fazer ele.
+            //E provavelmente teremos que mexer no Layout da Damdfe.
+            //Laço para percorrer todas as Tags 'seg'.
+            foreach ($seg as $item) {
+                 /** @var \DOMElement $item */
+                 //Esse if não vai deixar trazer mais de 15 número de averbação
+                if($i < $contador) {
+                    break;
+                } else {
+                    $altura += 4;
+                    if (!empty($seg_infResp) && !empty($seg_infResp->getElementsByTagName("respSeg")->item(0)->nodeValue)) {
+                        switch ($seg_infResp->getElementsByTagName("respSeg")->item(0)->nodeValue) {
+                            case 1:
+                                $texto = "(1) Emitente - ";
+                                break;
+                            case 2:
+                                $texto = "(2) Contratante - ";
+                            break;
+                        }
+                    }
 
-            if (!empty($seg_infResp) && !empty($seg_infResp->getElementsByTagName("CNPJ")->item(0)->nodeValue)) {
-                $texto .= $this->pFormat(
-                    $seg_infResp->getElementsByTagName("CNPJ")->item(0)->nodeValue,
-                    "###.###.###/####-##"
-                );
-            } else if (!empty($seg_infResp) && !empty($seg_infResp->getElementsByTagName("CPF")->item(0)->nodeValue)) {
-                $texto .= $this->pFormat(
-                    $seg_infResp->getElementsByTagName("CPF")->item(0)->nodeValue,
-                    "###.###.###-##"
-                );
+                    if (!empty($seg_infResp) && !empty($seg_infResp->getElementsByTagName("CNPJ")->item(0)->nodeValue)) {
+                        $texto .= $this->pFormat(
+                            $seg_infResp->getElementsByTagName("CNPJ")->item(0)->nodeValue,
+                            "###.###.###/####-##"
+                        );
+                    } else if (!empty($seg_infResp) && !empty($seg_infResp->getElementsByTagName("CPF")->item(0)->nodeValue)) {
+                        $texto .= $this->pFormat(
+                            $seg_infResp->getElementsByTagName("CPF")->item(0)->nodeValue,
+                            "###.###.###-##"
+                        );
+                    }
+                    $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
+                    $this->pTextBox($x1, $altura-3, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
+                }
+                $contador++;
             }
-            $aFont = array('font'=>$this->fontePadrao, 'size'=>10, 'style'=>'');
-            $this->pTextBox($x1, $y+4, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
 
             //----------------
             //Seguradora
             //----------------
             $x1 += $x2;
             //$x2 = ($maxW / 2)+50;
-            $x2 = ($maxW - $x1)+7;
-            $this->pTextBox($x1, $y, $x2, 12); //caixa
+            $x2 = ($maxW - $x1)-100;
+            //$this->pTextBox($x1+5, $y, $x2, 20); //caixa
             $texto = 'Seguradora';
             $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
-            $this->pTextBox($x1, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
+            $this->pTextBox($x1+2, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
+    
 
+            $i = 14; //Quantidade de Número Averbação que cabe no Campo;
+            $contador = 0;
             $texto = '';
-            if (!empty($seg_infSeg) && !empty($seg_infSeg->getElementsByTagName("CNPJ")->item(0)->nodeValue)) {
-                $texto = $this->pFormat(
-                    $seg_infSeg->getElementsByTagName("CNPJ")->item(0)->nodeValue,
-                    "###.###.###/####-##"
-                );
-            } else if (!empty($seg_infSeg) && !empty($seg_infSeg->getElementsByTagName("CPF")->item(0)->nodeValue)) {
-                $texto = $this->pFormat(
-                    $seg_infSeg->getElementsByTagName("CPF")->item(0)->nodeValue,
-                    "###.###.###-##"
-                );
+            $altura = $y + 4;
+            /** @var \DOMNodeList $seg */
+            $seg = $this->seg;
+            //De inicio esse laço vai trazer 15 números de averbação, hoje esse número vai nos atender muito bem.
+            //Caso no futuro alguém informe mais de 15 números, dai voltamos a mexer nesse laço ou repensar em como fazer ele.
+            //E provavelmente teremos que mexer no Layout da Damdfe.
+            //Laço para percorrer todas as Tags 'seg'.
+            foreach($seg as $item){
+                /** @var \DOMElement $item */
+                //Esse if não vai deixar trazer mais de 15 número de averbação
+                if($i < $contador) {
+                    break;
+                } else {
+                    $altura += 4;
+                    if (!empty($seg_infSeg) && !empty($seg_infSeg->getElementsByTagName("CNPJ")->item(0)->nodeValue)) {
+                        $texto = $this->pFormat(
+                        $seg_infSeg->getElementsByTagName("CNPJ")->item(0)->nodeValue,
+                        "###.###.###/####-##"
+                    );
+                    } else if (!empty($seg_infSeg) && !empty($seg_infSeg->getElementsByTagName("CPF")->item(0)->nodeValue)) {
+                        $texto = $this->pFormat(
+                        $seg_infSeg->getElementsByTagName("CPF")->item(0)->nodeValue,
+                        "###.###.###-##"
+                    );
+                    }
+                    if (!empty($seg_infSeg) && !empty($seg_infSeg->getElementsByTagName("xSeg")->item(0)->nodeValue)) {
+                        $texto .= ' - '.$seg_infSeg->getElementsByTagName("xSeg")->item(0)->nodeValue;
+                    }
+                    $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
+                    $this->pTextBox($x1+1, $altura-3, $x2+5, 20, $texto, $aFont, 'T', 'C', 0, '', false);
+                }
+                $contador++;
             }
-
-            if (!empty($seg_infSeg) && !empty($seg_infSeg->getElementsByTagName("xSeg")->item(0)->nodeValue)) {
-                $texto .= ' - '.$seg_infSeg->getElementsByTagName("xSeg")->item(0)->nodeValue;
-            }
-            $aFont = array('font'=>$this->fontePadrao, 'size'=>10, 'style'=>'');
-            $this->pTextBox($x1, $y+4, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
-
-            $y += 12; //nova linha
+            //$y += 5; //nova linha
 
             //----------------
             //Número Apólice
             //----------------
-            $x1 = $x;
-            $x2 = ($maxW / 4);
-            $this->pTextBox($x1, $y, $x2, 12); //caixa
+            $x1 += $x2;
+            $x2 = ($maxW / 2)-40;
+            //$this->pTextBox($x1, $y, $x2, 12); //caixa
             $texto = 'Número Apólice';
             $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
-            $this->pTextBox($x1, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
+            $this->pTextBox($x1+15, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
 
+            $i= 14; //Quantidade de Número Averbação que cabe no Campo;
+            $contador = 0;
             $texto = '';
-            if (!empty($this->seg->getElementsByTagName("nApol")->item(0)->nodeValue)) {
-                $texto = $this->seg->getElementsByTagName("nApol")->item(0)->nodeValue;
-            }
-            $aFont = array('font'=>$this->fontePadrao, 'size'=>10, 'style'=>'');
-            $this->pTextBox($x1, $y+4, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
+            $altura = $y + 4;
+            /** @var \DOMNodeList $seg */
+            $seg = $this->seg;
+            //De inicio esse laço vai trazer 15 números de averbação, hoje esse número vai nos atender muito bem.
+            //Caso no futuro alguém informe mais de 15 números, dai voltamos a mexer nesse laço ou repensar em como fazer ele.
+            //E provavelmente teremos que mexer no Layout da Damdfe.
+            //Laço para percorrer todas as Tags 'seg'.
+            //Rafael
+            $seg = $this->seg;
+            foreach ($seg as $item) {
+                /** @var \DOMElement $item */
+                 //Esse if não vai deixar trazer mais de 15 número de averbação
+                 if($i < $contador) {
+                    break;
 
+                } else {
+                     $altura += 4;
+                     $texto = $item->getElementsByTagName("nApol")->item(0)->nodeValue;
+                     $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
+                     $this->pTextBox($x1, $altura-3, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
+                }  
+                $contador++;  
+            }
+
+            //Linha Antiga(está funcionando)
+            /*if (!empty($this->seg->getElementsByTagName("nApol")->item(0)->nodeValue)) {
+                $texto = $this->seg->getElementsByTagName("nApol")->item(0)->nodeValue;
+            }*/ 
+            
             //----------------
             //Número Averbação
             //----------------
-            $x1 += $x2;
-            $x2 = ($maxW - $x1)+7;
-            $this->pTextBox($x1, $y, $x2, 12); //caixa
+            $x1 += $x;
+            $x2 = ($maxW /2)+380;
+            $y -= 1;
+            //$this->pTextBox($x1-161, $y, $x2, 66); //caixa
             $texto = 'Número Averbação';
             $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
-            $this->pTextBox($x1, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
-
+            $this->pTextBox($x1+40, $y+1, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
+            //$y += 12; //nova linha
+           
+            //Rafael
+            $i = 14; //Quantidade de Número Averbação que cabe no Campo;
+            $contador = 0;
             $texto = '';
-            if (! empty($this->seg->getElementsByTagName("nAver")->item(0)->nodeValue)) {
+            $altura = $y + 4;
+            $y += 12;
+             /** @var \DOMNodeList $seg */
+             $seg = $this->seg;
+            //De inicio esse laço vai trazer 15 números de averbação, hoje esse número vai nos atender muito bem.
+            //Caso no futuro alguém informe mais de 15 números, dai voltamos a mexer nesse laço ou repensar em como fazer ele.
+            //E provavelmente teremos que mexer no Layout da Damdfe.
+            //Laço para percorrer todas as Tags 'seg'.
+            foreach ($seg as $item) {
+                 /** @var \DOMElement $item */
+                 //Esse if não vai deixar trazer mais de 15 número de averbação
+                if($i < $contador) {
+                    break;
+                } else {
+                    $altura += 4;
+                    $texto = $item->getElementsByTagName("nAver")->item(0)->nodeValue;
+                    $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
+                    $this->pTextBox($x1-170, $altura-2, $x2, 12, $texto, $aFont, 'T', 'C', 0, '', false);
+                }
+                $contador++;
+            }
+            //Jeito antigo de trazer o número de averbação(está funcionando), porém só traz o primeiro número.
+            /*if (! empty($this->seg->getElementsByTagName("nAver")->item(0)->nodeValue)) {
                 $texto = $this->seg->getElementsByTagName("nAver")->item(0)->nodeValue;
             }
             $aFont = array('font'=>$this->fontePadrao, 'size'=>10, 'style'=>'');
-            $this->pTextBox($x1, $y+4, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
-
-
+            $this->pTextBox($x1, $y+4, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);*/
             $y += 12;
-            $y += 2;
+            $y += 3;
         }
         return $y;
     }
@@ -1047,6 +1146,7 @@ class Damdfe extends Common
     public function setTextoRodape($newTextoRodape)
     {
         $this->TextoRodape = $newTextoRodape;
+        
     }
 
     /**
@@ -1059,11 +1159,11 @@ class Damdfe extends Common
     {
         $maxW = $this->wPrint;
         $x2 = $maxW;
-        $this->pTextBox($x, $y, $x2, 30);
+        $this->pTextBox($x, $y+40, $x2, 20);
         $texto = 'Observação
         '.$this->infCpl;
         $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
-        $this->pTextBox($x, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
+        $this->pTextBox($x, $y+40, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
         /* //VALTER
         $y = $this->hPrint -4;
         $texto = "Impresso em  ". date('d/m/Y   H:i:s');
