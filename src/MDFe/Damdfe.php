@@ -1118,10 +1118,17 @@ class Damdfe extends Common
                 if($i < $contador) {
                     break;
                 } else {
-                    $altura += 4;
-                    $texto = $item->getElementsByTagName("nAver")->item(0)->nodeValue;
-                    $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
-                    $this->pTextBox($x1-170, $altura-2, $x2, 12, $texto, $aFont, 'T', 'C', 0, '', false);
+                    if (isset($item->getElementsByTagName("nAver")->item(0)->nodeValue)) {
+                        $altura += 4;
+                        $texto = $item->getElementsByTagName("nAver")->item(0)->nodeValue;
+                        $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
+                        $this->pTextBox($x1-170, $altura-2, $x2, 12, $texto, $aFont, 'T', 'C', 0, '', false);
+                    } else {
+                        $altura += 4;
+                        $texto = '';
+                        $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
+                        $this->pTextBox($x1-170, $altura-2, $x2, 12, $texto, $aFont, 'T', 'C', 0, '', false);
+                    }
                 }
                 $contador++;
             }
