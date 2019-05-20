@@ -1075,10 +1075,17 @@ class Damdfe extends Common
                     break;
 
                 } else {
-                     $altura += 4;
-                     $texto = $item->getElementsByTagName("nApol")->item(0)->nodeValue;
-                     $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
-                     $this->pTextBox($x1, $altura-3, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
+                    if (isset($item->getElementsByTagName("nApol")->item(0)->nodeValue)) {
+                         $altura += 4;
+                         $texto = $item->getElementsByTagName("nApol")->item(0)->nodeValue;
+                         $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
+                         $this->pTextBox($x1, $altura-3, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
+                    } else {
+                         $altura += 4;
+                         $texto = '';
+                         $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
+                         $this->pTextBox($x1, $altura-3, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
+                    }
                 }  
                 $contador++;  
             }
