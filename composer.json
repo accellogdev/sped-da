@@ -10,7 +10,8 @@
             "name": "Roberto L. Machado",
             "email": "linux.rlm@gmail.com.br",
             "homepage": "http://www.nfephp.org",
-            "role": "Developer"
+            "role": "Developer",
+			"update": "https://github.com/joaoroyosilva/sped-da"
         },
         {
             "name": "Comunidade NFePHP",
