@@ -15,6 +15,7 @@ namespace NFePHP\DA\MDFe;
  * @author    Leandro C. Lopez <leandro dot castoldi at gmail dot com>
  */
 
+use Com\Tecnick\Barcode\Barcode; //VALTER - qrCode
 //use NFePHP\Common\Dom\Dom; //VALTER
 use NFePHP\DA\Legacy\Dom; //VALTER
 use NFePHP\DA\Legacy\Common;
@@ -42,6 +43,7 @@ class Damdfe extends Common
     protected $wPrint; //largura imprimivel
     protected $hPrint; //comprimento imprimivel
     protected $formatoChave="#### #### #### #### #### #### #### #### #### #### ####";
+    protected $qrCodH = 11; //VALTER qrCode
     //variaveis da carta de correção
     protected $id;
     protected $chMDFe;
@@ -62,6 +64,7 @@ class Damdfe extends Common
     private $infEvento;
     private $retEvento;
     private $rinfEvento;
+    protected $qrCodMDFe; //qrCode - VALTER
 
     protected $TextoRodape = ''; //VALTER
     
@@ -211,6 +214,11 @@ class Damdfe extends Common
             '',
             $this->infMDFe->getAttribute("Id")
         );
+
+        //qrCode - VALTER
+        $this->qrCodMDFe = $this->dom->getElementsByTagName('qrCodMDFe')->item(0) ?
+            $this->dom->getElementsByTagName('qrCodMDFe')->item(0)->nodeValue : null;
+
         if (is_object($this->mdfeProc)) {
             $this->nProt = ! empty($this->mdfeProc->getElementsByTagName("nProt")->item(0)->nodeValue) ?
                     $this->mdfeProc->getElementsByTagName("nProt")->item(0)->nodeValue : '';
@@ -381,6 +389,12 @@ class Damdfe extends Common
         $this->pdf->SetFillColor(0, 0, 0);
         $this->pdf->Code128($x+5, $y+7.5, $this->chMDFe, $bW-10, $bH);
         $this->pdf->SetFillColor(255, 255, 255);
+
+        // VALTER - qrCode no modo paisagem não testado
+        if ($this->qrCodMDFe) {
+            $y = $this->pQRDANFE($x, $y1 - 3, 50);
+        }
+
         $y = $y + 22;
         $this->pTextBox($x, $y, $w, 8);
         $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'I');
@@ -540,13 +554,28 @@ class Damdfe extends Common
             ''
         );
         $y = $y + 8;
-        $this->pTextBox($x, $y, $maxW, 20);
-        $bH = 16;
+
         $bW = 75; //$maxW - 100; //VALTER
         $this->pdf->SetFillColor(0, 0, 0);
-        $this->pdf->Code128($x+(($w-$bW)/2), $y+2, $this->chMDFe, $bW, $bH); //VALTER $bW-10 //$this->pdf->Code128($x+5 + 50, $y+2, $this->chMDFe, $bW, $bH);
+        // VALTER - qrCode
+        $bcH = $x+(($w-$bW)/2);
+        $qcH = 0;
+        if ($this->qrCodMDFe) {
+            $qcH = $this->qrCodH; 
+            $bcH = $x+15;
+        }
+        $bH = 16+$qcH; //VALTER
+        $this->pTextBox($x, $y, $maxW, 20+$qcH); //20 //VALTER
+        //$this->pdf->Code128($x+(($w-$bW)/2), $y+2, $this->chMDFe, $bW, $bH); //VALTER $bW-10 //$this->pdf->Code128($x+5 + 50, $y+2, $this->chMDFe, $bW, $bH);
+        $this->pdf->Code128($bcH, $y+2, $this->chMDFe, $bW, $bH); //VALTER $bW-10 //$this->pdf->Code128($x+5 + 50, $y+2, $this->chMDFe, $bW, $bH);
         $this->pdf->SetFillColor(255, 255, 255);
-        $y = $y + 22;
+
+        // VALTER - qrCode
+        if ($this->qrCodMDFe) {
+            $this->pQRDANFE($y); 
+        }
+
+        $y = $y + 22+$qcH; //22; //VALTER
         $this->pTextBox($x, $y, $maxW, 10);
         $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'I');
         $tsHora = $this->pConvertTime($this->dhEvento);
@@ -1161,6 +1190,36 @@ class Damdfe extends Common
     {
         $this->TextoRodape = $newTextoRodape;
         
+    }
+
+    /**
+     * qrCode
+     * @author Valter
+     */
+    protected function pQRDANFE($y = 0)
+    {
+        $margemInterna = 3; //2;
+        $maxW = $this->wPrint;
+        $w = ($maxW * 1) + 4;
+        $barcode = new Barcode();
+        $bobj = $barcode->getBarcodeObj(
+            'QRCODE,M',
+            $this->qrCodMDFe,
+            -4,
+            -4,
+            'black',
+            array(-2, -2, -2, -2)
+        )->setBackgroundColor('white');
+        $qrcode = $bobj->getPngData();
+        $wQr = 25;
+        $hQr = 25;
+        $yQr = ($y + $margemInterna);
+        $xQr = 160;
+        // prepare a base64 encoded "data url"
+        $pic = 'data://text/plain;base64,' . base64_encode($qrcode);
+        $info = getimagesize($pic);
+        $this->pdf->image($pic, $xQr, $yQr, $wQr, $hQr, 'PNG');
+        //return ($yQr + $margemInterna);
     }
 
     /**

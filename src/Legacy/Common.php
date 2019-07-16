@@ -51,9 +51,9 @@ class Common
      * pSimpleGetValue
      * Extrai o valor do node DOM
      *
-     * @param  object                                        $theObj          Instancia de DOMDocument ou DOMElement
-     * @param  string                                        $keyName         identificador da TAG do xml
-     * @param  string                                        $extraTextBefore prefixo do retorno
+     * @param  object $theObj Instancia de DOMDocument ou DOMElement
+     * @param  string $keyName identificador da TAG do xml
+     * @param  string $extraTextBefore prefixo do retorno
      * @param  string extraTextAfter sufixo do retorno
      * @param  number itemNum numero do item a ser retornado
      * @return string
@@ -102,7 +102,7 @@ class Common
     } //fim pSimpleGetDate
 
     /**
-     * pModulo11
+     * pModulo11 - calcula digito de controle modulo 11
      *
      * @param  string $numero
      * @return integer modulo11 do numero passado
@@ -116,7 +116,7 @@ class Common
         $tamanho = strlen($numero);
         $soma = 0;
         $mult = 2;
-        for ($i = $tamanho-1; $i >= 0; $i--) {
+        for ($i = $tamanho - 1; $i >= 0; $i--) {
             $digito = (int) $numero[$i];
             $r = $digito * $mult;
             $soma += $r;
@@ -169,7 +169,7 @@ class Common
             $atDH = explode(':', $inter[0]);
             $timestampDH = mktime($atDH[0], $atDH[1], $atDH[2], $adDH[1], $adDH[2], $adDH[0]);
         } else {
-            $timestampDH = mktime($month = $adDH[1], $day =  $adDH[2], $year = $adDH[0]);
+            $timestampDH = mktime($month = $adDH[1], $day = $adDH[2], $year = $adDH[0]);
         }
         return $timestampDH;
     }
@@ -200,8 +200,8 @@ class Common
         }
         //contar o numero de cerquilhas da mascara
         $aMask = str_split($mascara);
-        $z=0;
-        $flag=false;
+        $z = 0;
+        $flag = false;
         foreach ($aMask as $letra) {
             if ($letra == '#') {
                 $z++;
@@ -209,20 +209,20 @@ class Common
         }
         if ($z > $tCampo) {
             //o campo é menor que esperado
-            $flag=true;
+            $flag = true;
         }
         //cria uma variável grande o suficiente para conter os dados
         $sRetorno = '';
-        $sRetorno = str_pad($sRetorno, $tCampo+$tMask, " ", STR_PAD_LEFT);
+        $sRetorno = str_pad($sRetorno, $tCampo + $tMask, " ", STR_PAD_LEFT);
         //pega o tamanho da string de retorno
         $tRetorno = strlen($sRetorno);
         //se houve entrada de dados
-        if ($sLimpo != '' && $mascara !='') {
+        if ($sLimpo != '' && $mascara != '') {
             //inicia com a posição do ultimo digito da mascara
             $x = $tMask;
             $y = $tCampo;
             $cI = 0;
-            for ($i = $tMaior-1; $i >= 0; $i--) {
+            for ($i = $tMaior - 1; $i >= 0; $i--) {
                 if ($cI < $z) {
                     // e o digito da mascara é # trocar pelo digito do campo
                     // se o inicio da string da mascara for atingido antes de terminar
@@ -234,7 +234,7 @@ class Common
                     }
                     //se o fim do campo for atingido antes do fim da mascara
                     //verificar se é ( se não for não use
-                    if ($digMask=='#') {
+                    if ($digMask == '#') {
                         $cI++;
                         if ($y > 0) {
                             $sRetorno[--$tRetorno] = $sLimpo[--$y];
@@ -245,7 +245,7 @@ class Common
                         if ($y > 0) {
                             $sRetorno[--$tRetorno] = $mascara[$x];
                         } else {
-                            if ($mascara[$x] =='(') {
+                            if ($mascara[$x] == '(') {
                                 $sRetorno[--$tRetorno] = $mascara[$x];
                             }
                         }
@@ -273,11 +273,11 @@ class Common
      * @param  array  $aFont
      * @return number numero de linhas
      */
-    protected function pGetNumLines($text, $width, $aFont = array('font'=>'Times','size'=>8,'style'=>''))
+    protected function pGetNumLines($text, $width, $aFont = array('font' => 'Times', 'size' => 8, 'style' => ''))
     {
         $text = trim($text);
         $this->pdf->SetFont($aFont['font'], $aFont['style'], $aFont['size']);
-        $n = $this->pdf->WordWrap($text, $width-0.2);
+        $n = $this->pdf->WordWrap($text, $width - 0.2);
         return $n;
     }
 
@@ -314,7 +314,7 @@ class Common
         $w,
         $h,
         $text = '',
-        $aFont = array('font'=>'Times','size'=>8,'style'=>''),
+        $aFont = array('font' => 'Times', 'size' => 8, 'style' => ''),
         $vAlign = 'T',
         $hAlign = 'L',
         $border = 1,
@@ -337,6 +337,8 @@ class Common
             $text = trim($text);
             //converter o charset para o fpdf
             $text = utf8_decode($text);
+            //decodifica os caracteres html no xml
+            $text = html_entity_decode($text);
         } else {
             $text = (string) $text;
         }
@@ -361,15 +363,15 @@ class Common
         //verificar o alinhamento vertical
         if ($vAlign == 'T') {
             //alinhado ao topo
-            $y1 = $y+$incY;
+            $y1 = $y + $incY;
         }
         if ($vAlign == 'C') {
             //alinhado ao centro
-            $y1 = $y + $incY + (($h-$altText)/2);
+            $y1 = $y + $incY + (($h - $altText) / 2);
         }
         if ($vAlign == 'B') {
             //alinhado a base
-            $y1 = ($y + $h)-0.5;
+            $y1 = ($y + $h) - 0.5;
         }
         //para cada linha
         foreach ($lines as $line) {
@@ -386,17 +388,17 @@ class Common
             }
             //ajustar ao alinhamento horizontal
             if ($hAlign == 'L') {
-                $x1 = $x+0.5;
+                $x1 = $x + 0.5;
             }
             if ($hAlign == 'C') {
-                $x1 = $x + (($w - $comp)/2);
+                $x1 = $x + (($w - $comp) / 2);
             }
             if ($hAlign == 'R') {
-                $x1 = $x + $w - ($comp+0.5);
+                $x1 = $x + $w - ($comp + 0.5);
             }
             //escrever o texto
             if ($vOffSet > 0) {
-                if ($y1 > ($oldY+$vOffSet)) {
+                if ($y1 > ($oldY + $vOffSet)) {
                     if (!$resetou) {
                         $y1 = $oldY;
                         $resetou = true;
@@ -408,12 +410,12 @@ class Common
             }
             //incrementar para escrever o proximo
             $y1 += $incY;
-            if (($hmax > 0) && ($y1 > ($y+($hmax-1)))) {
+            if (($hmax > 0) && ($y1 > ($y + ($hmax - 1)))) {
                 $temObs = true;
                 break;
             }
         }
-        return ($y1-$y)-$incY;
+        return ($y1 - $y) - $incY;
     } // fim função __textBox
 
     /**
@@ -425,20 +427,20 @@ class Common
      * Ex. $this->__textBox90(2,20,34,8,'Texto',array('fonte'=>$this->fontePadrao,
      * 'size'=>10,'style='B'),'C','L',FALSE,'http://www.nfephp.org')
      *
-     * @param  number  $x       Posição horizontal da caixa, canto esquerdo superior
-     * @param  number  $y       Posição vertical da caixa, canto esquerdo superior
-     * @param  number  $w       Largura da caixa
-     * @param  number  $h       Altura da caixa
-     * @param  string  $text    Conteúdo da caixa
-     * @param  array   $aFont   Matriz com as informações para formatação do texto com fonte, tamanho e estilo
-     * @param  string  $vAlign  Alinhamento vertical do texto, T-topo C-centro B-base
-     * @param  string  $hAlign  Alinhamento horizontal do texto, L-esquerda, C-centro, R-direita
-     * @param  boolean $border  TRUE ou 1 desenha a borda, FALSE ou 0 Sem borda
-     * @param  string  $link    Insere um hiperlink
-     * @param  boolean $force   Se for true força a caixa com uma unica linha e para isso atera o tamanho do
+     * @param  number $x Posição horizontal da caixa, canto esquerdo superior
+     * @param  number $y Posição vertical da caixa, canto esquerdo superior
+     * @param  number $w Largura da caixa
+     * @param  number $h Altura da caixa
+     * @param  string $text Conteúdo da caixa
+     * @param  array $aFont Matriz com as informações para formatação do texto com fonte, tamanho e estilo
+     * @param  string $vAlign Alinhamento vertical do texto, T-topo C-centro B-base
+     * @param  string $hAlign Alinhamento horizontal do texto, L-esquerda, C-centro, R-direita
+     * @param  boolean $border TRUE ou 1 desenha a borda, FALSE ou 0 Sem borda
+     * @param  string $link Insere um hiperlink
+     * @param  boolean $force Se for true força a caixa com uma unica linha e para isso atera o tamanho do
      *  fonte até caber no espaço, se falso mantem o tamanho do fonte e usa quantas linhas forem necessárias
-     * linha e para isso atera o tamanho do fonte até caber no espaço,
-     * se falso mantem o tamanho do fonte e usa quantas linhas forem necessárias
+     *  linha e para isso atera o tamanho do fonte até caber no espaço,
+     *  se falso mantem o tamanho do fonte e usa quantas linhas forem necessárias
      * @param  number  $hmax
      * @param  number  $vOffSet incremento forçado na na posição Y
      * @return number $height Qual a altura necessária para desenhar esta textBox
@@ -449,7 +451,7 @@ class Common
         $w,
         $h,
         $text = '',
-        $aFont = array('font'=>'Times','size'=>8,'style'=>''),
+        $aFont = array('font' => 'Times', 'size' => 8, 'style' => ''),
         $vAlign = 'T',
         $hAlign = 'L',
         $border = 1,
@@ -474,6 +476,8 @@ class Common
             $text = trim($text);
             //converter o charset para o fpdf
             $text = utf8_decode($text);
+            //decodifica os caracteres html no xml
+            $text = html_entity_decode($text);
         } else {
             $text = (string) $text;
         }
@@ -498,15 +502,15 @@ class Common
         //verificar o alinhamento vertical
         if ($vAlign == 'T') {
             //alinhado ao topo
-            $y1 = $y+$incY;
+            $y1 = $y + $incY;
         }
         if ($vAlign == 'C') {
             //alinhado ao centro
-            $y1 = $y + $incY + (($h-$altText)/2);
+            $y1 = $y + $incY + (($h - $altText) / 2);
         }
         if ($vAlign == 'B') {
             //alinhado a base
-            $y1 = ($y + $h)-0.5;
+            $y1 = ($y + $h) - 0.5;
         }
         //para cada linha
         foreach ($lines as $line) {
@@ -523,17 +527,17 @@ class Common
             }
             //ajustar ao alinhamento horizontal
             if ($hAlign == 'L') {
-                $x1 = $x+0.5;
+                $x1 = $x + 0.5;
             }
             if ($hAlign == 'C') {
-                $x1 = $x + (($w - $comp)/2);
+                $x1 = $x + (($w - $comp) / 2);
             }
             if ($hAlign == 'R') {
-                $x1 = $x + $w - ($comp+0.5);
+                $x1 = $x + $w - ($comp + 0.5);
             }
             //escrever o texto
             if ($vOffSet > 0) {
-                if ($y1 > ($oldY+$vOffSet)) {
+                if ($y1 > ($oldY + $vOffSet)) {
                     if (!$resetou) {
                         $y1 = $oldY;
                         $resetou = true;
@@ -545,13 +549,13 @@ class Common
             }
             //incrementar para escrever o proximo
             $y1 += $incY;
-            if (($hmax > 0) && ($y1 > ($y+($hmax-1)))) {
+            if (($hmax > 0) && ($y1 > ($y + ($hmax - 1)))) {
                 $temObs = true;
                 break;
             }
         }
         //Zerando rotação
         $this->pdf->Rotate(0, $x, $y);
-        return ($y1-$y)-$incY;
+        return ($y1 - $y) - $incY;
     }
 }
