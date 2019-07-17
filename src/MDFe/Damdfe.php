@@ -1218,7 +1218,8 @@ class Damdfe extends Common
         // prepare a base64 encoded "data url"
         $pic = 'data://text/plain;base64,' . base64_encode($qrcode);
         $info = getimagesize($pic);
-        $this->pdf->image($pic, $xQr, $yQr, $wQr, $hQr, 'PNG');
+		$link = $this->qrCodMDFe;
+        $this->pdf->image($pic, $xQr, $yQr, $wQr, $hQr, 'PNG', $link);
         //return ($yQr + $margemInterna);
     }
 
