@@ -1322,12 +1322,12 @@ class Fpdf
     {
         //Extract info from a JPEG file
         $a = getImageSize($file);
-        if (!$a) {
+        /* if (!$a) {
             $this->error('Missing or incorrect image file: '.$file);
         }
         if ($a[2]!=2) {
             $this->error('Not a JPEG file: '.$file);
-        }
+        } */ //ValterFC - removido tratamento de erro - simplesmente não mostrará nada na tela
         if (!isset($a['channels']) || $a['channels'] == 3) {
             $colspace = 'DeviceRGB';
         } elseif ($a['channels'] == 4) {

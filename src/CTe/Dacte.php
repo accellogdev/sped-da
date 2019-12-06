@@ -15,6 +15,7 @@ namespace NFePHP\DA\CTe;
  * @author    Roberto L. Machado <linux dot rlm at gmail dot com>
  */
 
+use Com\Tecnick\Barcode\Barcode; //ValterFC
 use NFePHP\DA\Legacy\Dom;
 use NFePHP\DA\Legacy\Pdf;
 use NFePHP\DA\Legacy\Common;
@@ -92,6 +93,7 @@ class Dacte extends Common
     protected $TextoRodape = ''; //VALTER
     protected $idDocAntEle; //VALTER
     protected $arrayIdDocAntEle = []; //VALTER
+    protected $qrCodCTe; //qrCode - ValterFC
     
     /**
      * __construct
@@ -263,6 +265,10 @@ class Dacte extends Common
             $this->protCTe = $this->dom->getElementsByTagName("protCTe")->item(0);
             //01-Rodoviário; //02-Aéreo; //03-Aquaviário; //04-Ferroviário;//05-Dutoviário
             $this->modal = $this->pSimpleGetValue($this->ide, "modal");
+
+            //qrCode - ValterFC
+            $this->qrCodCTe = $this->dom->getElementsByTagName('qrCodCTe')->item(0) ?
+                $this->dom->getElementsByTagName('qrCodCTe')->item(0)->nodeValue : null;
         }
     }
 
@@ -898,6 +904,15 @@ class Dacte extends Common
         $aFont = $this->formatNegrito;
         $this->pTextBox($xa, $y + 5, $wa, $h, $texto, $aFont, 'T', 'C', 0, '');
         $this->pdf->Line($xa + $wa, $y, $xa + $wa, $y + $h + 1);
+        
+        //ValterFC - QRCode - adicionada quebra de linha, para incluir QRCode
+        $wMenor = 0;
+        if ($this->qrCodCTe) {
+            $wMenor = 31.5;
+            $yc = $y + 10;
+            $this->pQRDACTE($yc); 
+        }
+
         //data  hora de emissão
         $xa += $wa;
         $wa = 30;
@@ -924,28 +939,32 @@ class Dacte extends Common
             'size' => 7,
             'style' => 'B');
         $this->pTextBox($xa, $y + 5, $wa, $h, $texto, $aFont, 'T', 'C', 0, '');
+
         //outra caixa
         $y += $h + 1;
         $h = 23;
         $h1 = 14;
-        $this->pTextBox($x, $y, $w + 0.5, $h1);
+        $this->pTextBox($x, $y, $w + 0.5 - $wMenor, $h1);
         //CODIGO DE BARRAS
         $chave_acesso = !is_null($this->infCte) ? str_replace('CTe', '', $this->infCte->getAttribute("Id")) : ''; //VALTER
-        $bW = 85;
-        $bH = 10;
+        $bW = 75;
+        $bH = 12;
+        $cx = $x - ($wMenor / 2); //ValterFC
         //codigo de barras
         $this->pdf->SetFillColor(0, 0, 0);
-        $this->pdf->Code128($x + (($w - $bW) / 2), $y + 2, $chave_acesso, $bW, $bH);
-        $this->pTextBox($x, $y + $h1, $w + 0.5, $h1 - 6);
+        $this->pdf->Code128($cx + (($w - $bW) / 2), $y + 1, $chave_acesso, $bW, $bH);
+        $this->pTextBox($x, $y + $h1, $w + 0.5 - $wMenor, $h1 - 6);
+
+        $xa = $cx; // $x - 15; //ValterFC
         $texto = 'CHAVE DE ACESSO';
         $aFont = $this->formatPadrao;
         $this->pTextBox($x, $y + $h1, $w, $h, $texto, $aFont, 'T', 'L', 0, '');
         $aFont = $this->formatNegrito;
         $texto = $this->pFormat($chave_acesso, '##.####.##.###.###/####-##-##-###-###.###.###-###.###.###-#');
-        $this->pTextBox($x, $y + $h1 + 3, $w, $h, $texto, $aFont, 'T', 'C', 0, '');
-        $this->pTextBox($x, $y + $h1 + 8, $w + 0.5, $h1 - 4.5);
+        $this->pTextBox($xa, $y + $h1 + 3, $w, $h, $texto, $aFont, 'T', 'C', 0, '');
+        $this->pTextBox($x, $y + $h1 + 8, $w + 0.5 - $wMenor, $h1 - 4.5);
         $texto = "Consulta de autenticidade no portal nacional do CT-e, ";
-        $texto .= "no site da Sefaz Autorizadora, \r\n ou em http://www.cte.fazenda.gov.br";
+        $texto .= "no site \r\n da Sefaz Autorizadora ou em http://www.cte.fazenda.gov.br";
         if ($this->tpEmis == 5 || $this->tpEmis == 7 || $this->tpEmis == 8) {
             $texto = "";
             $this->pdf->SetFillColor(0, 0, 0);
@@ -962,7 +981,7 @@ class Dacte extends Common
             'font' => $this->fontePadrao,
             'size' => 8,
             'style' => '');
-        $this->pTextBox($x, $y + $h1 + 9, $w, $h, $texto, $aFont, 'T', 'C', 0, '');
+        $this->pTextBox($xa, $y + $h1 + 9, $w, $h, $texto, $aFont, 'T', 'C', 0, '');
         //outra caixa
         $y += $h + 1;
         $h = 8.5;
@@ -1224,6 +1243,37 @@ class Dacte extends Common
     public function setTextoRodape($newTextoRodape)
     {
         $this->TextoRodape = $newTextoRodape;
+    }
+
+    /**
+     * qrCode
+     * @author ValterFC
+     */
+    protected function pQRDACTE($y = 0)
+    {
+        $margemInterna = 3; //2;
+        $maxW = $this->wPrint;
+        $w = ($maxW * 1) + 4;
+        $barcode = new Barcode();
+        $bobj = $barcode->getBarcodeObj(
+            'QRCODE,M',
+            $this->qrCodCTe,
+            -4,
+            -4,
+            'black',
+            array(-2, -2, -2, -2)
+        )->setBackgroundColor('white');
+        $qrcode = $bobj->getPngData();
+        $wQr = 25;
+        $hQr = 25;
+        $yQr = ($y + $margemInterna);
+        $xQr = 180.5;
+        // prepare a base64 encoded "data url"
+        $pic = 'data://text/plain;base64,' . base64_encode($qrcode);
+        $info = getimagesize($pic);
+		$link = $this->qrCodCTe;
+        $this->pdf->image($pic, $xQr, $yQr, $wQr, $hQr, 'PNG', $link);
+        //return ($yQr + $margemInterna);
     }
 
     /**

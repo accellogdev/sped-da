@@ -142,7 +142,15 @@ class Damdfe extends Common
         $this->mdfeProc = $this->dom->getElementsByTagName("mdfeProc")->item(0);
         $this->infMDFe = $this->dom->getElementsByTagName("infMDFe")->item(0);
         $this->emit = $this->dom->getElementsByTagName("emit")->item(0);
-        $this->CNPJ = $this->dom->getElementsByTagName("CNPJ")->item(0)->nodeValue;
+        
+        if ($this->emit->getElementsByTagName("CPF")->item(0)) {
+            $this->CNPJ = $this->dom->getElementsByTagName("CPF")->item(0)->nodeValue;
+        } else {
+            $this->CNPJ = $this->dom->getElementsByTagName("CNPJ")->item(0)->nodeValue;
+        }
+
+        //$this->CNPJ = $this->dom->getElementsByTagName("CNPJ")->item(0)->nodeValue;
+
         $this->IE = $this->dom->getElementsByTagName("IE")->item(0)->nodeValue;
         $this->xNome = $this->dom->getElementsByTagName("xNome")->item(0)->nodeValue;
         $this->enderEmit = $this->dom->getElementsByTagName("enderEmit")->item(0);
@@ -352,7 +360,15 @@ class Damdfe extends Common
         }
         $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
         $razao = $this->xNome;
-        $cnpj = 'CNPJ: '.$this->pFormat($this->CNPJ, "###.###.###/####-##");
+
+        if (strlen($this->CNPJ) == 11) {
+            $cnpj = 'CPF: '.$this->pFormat($this->CNPJ, "###.###.###-##");
+        } else {
+            $cnpj = 'CNPJ: '.$this->pFormat($this->CNPJ, "###.###.###/####-##");
+        }
+
+        //$cnpj = 'CNPJ: '.$this->pFormat($this->CNPJ, "###.###.###/####-##");
+
         $ie = 'IE: '.$this->pFormat($this->IE, '##/########');
         $lgr = 'Logradouro: '.$this->xLgr;
         $nro = 'Nº: '.$this->nro;
@@ -523,7 +539,15 @@ class Damdfe extends Common
         }
         $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
         $razao = $this->xNome;
-        $cnpj = 'CNPJ: '.$this->pFormat($this->CNPJ, "###.###.###/####-##");
+
+        if (strlen($this->CNPJ) == 11) {
+            $cnpj = 'CPF: '.$this->pFormat($this->CNPJ, "###.###.###-##");
+        } else {
+            $cnpj = 'CNPJ: '.$this->pFormat($this->CNPJ, "###.###.###/####-##");
+        }
+
+        //$cnpj = 'CNPJ: '.$this->pFormat($this->CNPJ, "###.###.###/####-##");
+
         $ie = 'IE: '.$this->pFormat($this->IE, '###/#######');
         $lgr = 'Logradouro: '.$this->xLgr;
         $nro = 'Nº: '.$this->nro;
