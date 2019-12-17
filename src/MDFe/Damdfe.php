@@ -998,6 +998,12 @@ class Damdfe extends Common
             //----------------
             $x2 = ($maxW / 3)-23;
             $x1 = $x;
+
+            // Início - Sobreposição de informações (#29711);
+            $x1 += 2;
+            $x2 += 2;
+            // Fim - Sobreposição de informações (#29711);
+
             //$this->pTextBox($x1, $y, $x2, 12); //caixa
             $texto = 'Responsável';
             $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
@@ -1056,6 +1062,12 @@ class Damdfe extends Common
             //$x2 = ($maxW / 2)+50;
             $x2 = ($maxW - $x1)-100;
             //$this->pTextBox($x1+5, $y, $x2, 20); //caixa
+
+            // Início - Sobreposição de informações (#29711);
+            $x1 += 2;
+            $x2 += 2;
+            // Fim - Sobreposição de informações (#29711);
+
             $texto = 'Seguradora';
             $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
             $this->pTextBox($x1+2, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
@@ -1090,7 +1102,11 @@ class Damdfe extends Common
                     );
                     }
                     if (!empty($seg_infSeg) && !empty($seg_infSeg->getElementsByTagName("xSeg")->item(0)->nodeValue)) {
-                        $texto .= ' - '.$seg_infSeg->getElementsByTagName("xSeg")->item(0)->nodeValue;
+                        //$texto .= ' - '.$seg_infSeg->getElementsByTagName("xSeg")->item(0)->nodeValue;
+
+                        // Início - Sobreposição de informações (#29711);
+                        $texto .= ' - '. substr($seg_infSeg->getElementsByTagName("xSeg")->item(0)->nodeValue, 0, 14);
+                        // Fim - Sobreposição de informações (#29711);
                     }
                     $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
                     $this->pTextBox($x1+1, $altura-3, $x2+5, 20, $texto, $aFont, 'T', 'C', 0, '', false);
@@ -1106,6 +1122,12 @@ class Damdfe extends Common
             $x2 = ($maxW / 2)-40;
             //$this->pTextBox($x1, $y, $x2, 12); //caixa
             $texto = 'Número Apólice';
+
+            // Início - Sobreposição de informações (#29711);
+            $x1 -= 4;
+            $x2 -= 4;
+            // Fim - Sobreposição de informações (#29711);
+
             $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
             $this->pTextBox($x1+15, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
 
@@ -1242,7 +1264,7 @@ class Damdfe extends Common
         // prepare a base64 encoded "data url"
         $pic = 'data://text/plain;base64,' . base64_encode($qrcode);
         $info = getimagesize($pic);
-		$link = $this->qrCodMDFe;
+        $link = $this->qrCodMDFe;
         $this->pdf->image($pic, $xQr, $yQr, $wQr, $hQr, 'PNG', $link);
         //return ($yQr + $margemInterna);
     }
