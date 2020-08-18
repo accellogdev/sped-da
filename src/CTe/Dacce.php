@@ -53,6 +53,7 @@ class Dacce extends Common
     protected $xMotivo;
     protected $dhRegEvento;
     protected $nProt;
+    protected $TextoRodape = ''; //VALTER
 
     private $dom;
     private $procEventoCTe;
@@ -514,7 +515,18 @@ class Dacce extends Common
     }
 
     /**
-     * pFooter
+     * setTextoRodape
+     * @param string $newTextoRodape
+     * @return none
+     * Author: VALTER
+     */
+    public function setTextoRodape($newTextoRodape)
+    {
+        $this->TextoRodape = $newTextoRodape;
+    }
+
+    /**
+     * pFooter - Monta o rodapé
      *
      * @param number $x
      * @param number $y
@@ -532,6 +544,8 @@ class Dacce extends Common
         );
         $this->pTextBox($x, $y, $w, 20, $texto, $aFont, 'T', 'C', 0, '', false);
         $y = $this->hPrint - 4;
+
+        /* //VALTER
         $texto = "Impresso em  " . date('d/m/Y   H:i:s');
         $w = $this->wPrint - 4;
         $aFont = array(
@@ -547,6 +561,15 @@ class Dacce extends Common
             'style' => 'I'
         );
         $this->pTextBox($x, $y, $w, 4, $texto, $aFont, 'T', 'R', 0, 'http://www.nfephp.org');
+        */
+
+        $texto = $this->TextoRodape; //VALTER
+        $aFont = array(
+            'font' => $this->fontePadrao,
+            'size' => 6,
+            'style' => 'I'
+        );
+        $this->pTextBox($x, $y, $w, 4, $texto, $aFont, 'T', 'R', 0, ''); //VALTER
     }
 
     /**
