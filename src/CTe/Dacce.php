@@ -466,7 +466,10 @@ class Dacce extends Common
             $maxW = $this->wPrint;
             $grupo = $this->infCorrecao->item($i)->getElementsByTagName('grupoAlterado')->item(0)->nodeValue;
             $campo = $this->infCorrecao->item($i)->getElementsByTagName('campoAlterado')->item(0)->nodeValue;
-            $numero = $this->infCorrecao->item($i)->getElementsByTagName('nroItemAlterado')->item(0)->nodeValue;
+            $numero = '';
+            if ($this->infCorrecao->item($i)->getElementsByTagName('nroItemAlterado')->item(0) != '') {
+                $numero = $this->infCorrecao->item($i)->getElementsByTagName('nroItemAlterado')->item(0)->nodeValue;
+            }
             $valor = $this->infCorrecao->item($i)->getElementsByTagName('valorAlterado')->item(0)->nodeValue;
                                     
             $i++;
