@@ -89,6 +89,8 @@ class Dacte extends Common
     protected $aquav;
     protected $preVisualizar;
     protected $flagDocOrigContinuacao;
+    protected $flagObsContinuacao;
+    protected $xObs;
     protected $arrayNFe = array();
     protected $TextoRodape = ''; //VALTER
     protected $idDocAntEle; //VALTER
@@ -403,8 +405,7 @@ class Dacte extends Common
         $this->pdf->AddPage($this->orientacao, $this->papel);
         $this->pdf->SetLineWidth(0.1);
         $this->pdf->SetTextColor(0, 0, 0);
-        //calculo do numero de páginas ???
-        $totPag = 1;
+
         //montagem da primeira página
         $pag = 1;
         $x = $xInic;
@@ -451,7 +452,7 @@ class Dacte extends Common
             }
             $x = $xInic;
             $r = $this->zObs($x, $y);
-            $y = $y-6;
+            $y = $y-6 + $r;
             switch ($this->modal) {
                 case '1':
                     $y += 17.9;
@@ -507,7 +508,7 @@ class Dacte extends Common
             $y += 13;
             $x = $xInic;
             $r = $this->zObs($x, $y);
-            $y += 15;
+            $y += 15 + $r;
         }
         $x = $xInic;
         $r = $this->zDadosAdic($x, $y, $pag, $totPag);
@@ -522,8 +523,13 @@ class Dacte extends Common
         } else {
             $this->zRodape($xInic, $this->hPrint + 2.3);
         }
+        $xDocOrig = 0;
         if ($this->flagDocOrigContinuacao == 1) {
             $this->zdocOrigContinuacao(1, 71);
+            $xDocOrig = 35;
+        }
+        if ($this->flagObsContinuacao == 1) {
+            $this->zObsContinuacao(1, $xDocOrig + 71);
         }
         //retorna o ID na CTe
         if ($classPDF !== false) {
@@ -2812,6 +2818,56 @@ class Dacte extends Common
     } //fim da função zDocCompl
 
     /**
+     * zObsContinuacao
+     * Monta o campo com os documentos originarios.
+     *
+     * @param  number $x Posição horizontal canto esquerdo
+     * @param  number $y Posição vertical canto superior
+     * @return number Posição vertical final
+     */
+    protected function zObsContinuacao($x = 0, $y = 0)
+    {
+        // para não gerar outra página quando já gerou para os documentos
+        if ($this->flagDocOrigContinuacao != 1) {
+            $this->pdf->AddPage($this->orientacao, $this->papel);
+            $r = $this->zCabecalho(1, 1, '2', '2');
+        }
+
+        $oldX = $x;
+        $oldY = $y;
+        if ($this->orientacao == 'P') {
+            $maxW = $this->wPrint;
+        } else {
+            $maxW = $this->wPrint - $this->wCanhoto;
+        }
+        $w = $maxW;
+        $hDif = 26;
+        $h = 12 + $hDif;
+        $aFontObs = [
+            'font' => $this->fontePadrao,
+            'size' => 7.5,
+            'style' => ''
+        ];
+
+        // se observação tiver 6 ou mais linhas, manda gerar outra página
+        $textoObs = '... ' . substr($this->xObs, 430 + 1); // pega o restante da observação
+
+        // Printa CAIXA E SEPARADOR
+        $textoLabel = 'OBSERVAÇÕES - CONTINUAÇÃO';
+        $aFontLabel = $this->formatPadrao;
+        $this->pTextBox($x, $y, $w, $h, $textoLabel, $aFontLabel, 'T', 'C', 1, ''); // caixa da observação
+        $y += 3.4;
+        $this->pdf->Line($x, $y, $w + 1, $y); // separador
+
+        // Printa as Observações
+        $auxX = $oldX;
+        $yIniDados = $y;
+        $this->pTextBox($x, $y, $w, $h, $textoObs, $aFontObs, 'T', 'L', 0, '', false);
+
+        return $hDif;
+    } //fim da função zObsContinuacao
+
+    /**
      * zObs
      * Monta o campo com os dados do remetente na DACTE.
      *
@@ -2829,27 +2885,44 @@ class Dacte extends Common
             $maxW = $this->wPrint - $this->wCanhoto;
         }
         $w = $maxW;
-        //$h = 18;
-        $h = 12;
-        $texto = 'OBSERVAÇÕES';
-        $aFont = $this->formatPadrao;
-        $this->pTextBox($x, $y, $w, $h, $texto, $aFont, 'T', 'C', 1, '');
-        $y += 3.4;
-        $this->pdf->Line($x, $y, $w + 1, $y);
-        $auxX = $oldX;
-        $yIniDados = $y;
-        $texto = '';
-        foreach ($this->compl as $k => $d) {
-            $xObs = $this->pSimpleGetValue($this->compl->item($k), "xObs");
-            $texto .= "\r\n" . $xObs;
-        }
-        $texto .= $this->pSimpleGetValue($this->imp, "infAdFisco", "\r\n");
-        $texto .= $this->zLocalEntrega();
-        $aFont = array(
+        $hDif = 0;
+        $h = 12 + $hDif;
+        $aFontObs = [
             'font' => $this->fontePadrao,
             'size' => 7.5,
-            'style' => '');
-        $this->pTextBox($x, $y, $w, $h, $texto, $aFont, 'T', 'L', 0, '', false);
+            'style' => ''
+        ];
+
+        $this->xObs = '';
+        foreach ($this->compl as $k => $d) {
+            $xObs = $this->pSimpleGetValue($this->compl->item($k), "xObs");
+            $this->xObs .= "\r\n" . $xObs;
+        }
+        $this->xObs .= $this->pSimpleGetValue($this->imp, "infAdFisco", "\r\n");
+        $this->xObs .= $this->zLocalEntrega();
+        $obsLines = $this->pGetNumLines($this->xObs, $w, $aFontObs); // número de linhas das observações
+
+        // se observação tiver 6 ou mais linhas, manda gerar outra página
+        $textoObs = $this->xObs;
+        if ($obsLines >= 4) {
+            $totPag = '2';
+            $this->flagObsContinuacao = 1;
+            $textoObs = substr($this->xObs, 1, 430) . ' ...'; // corta a observação
+        }
+
+        // Printa CAIXA E SEPARADOR
+        $textoLabel = 'OBSERVAÇÕES';
+        $aFontLabel = $this->formatPadrao;
+        $this->pTextBox($x, $y, $w, $h, $textoLabel, $aFontLabel, 'T', 'C', 1, ''); // caixa da observação
+        $y += 3.4;
+        $this->pdf->Line($x, $y, $w + 1, $y); // separador
+
+        // Printa as Observações
+        $auxX = $oldX;
+        $yIniDados = $y;
+        $this->pTextBox($x, $y, $w, $h, $textoObs, $aFontObs, 'T', 'L', 0, '', false);
+
+        return $hDif;
     } //fim da função obsDACTE
 
     /**
