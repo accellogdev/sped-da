@@ -91,11 +91,12 @@ class Dacte extends Common
     protected $flagDocOrigContinuacao;
     protected $flagObsContinuacao;
     protected $xObs;
-    protected $arrayNFe = array();
+    protected $arrayNFe = [];
     protected $TextoRodape = ''; //VALTER
     protected $idDocAntEle; //VALTER
     protected $arrayIdDocAntEle = []; //VALTER
     protected $qrCodCTe; //qrCode - ValterFC
+    protected $arrayDocInfOutros = []; //VALTER
     
     /**
      * __construct
@@ -526,7 +527,7 @@ class Dacte extends Common
         $xDocOrig = 0;
         if ($this->flagDocOrigContinuacao == 1) {
             $this->zdocOrigContinuacao(1, 71);
-            $xDocOrig = 35;
+            $xDocOrig = 180; //35
         }
         if ($this->flagObsContinuacao == 1) {
             $this->zObsContinuacao(1, $xDocOrig + 71);
@@ -2449,19 +2450,10 @@ class Dacte extends Common
 
             $this->arrayIdDocAntEle[] = $chaveCTe;
         }
-        $totalDocs = (count($this->arrayNFe) + count($this->arrayIdDocAntEle));
-        
-        //if (count($this->arrayNFe) >15) { //VALTER - COMENTADO
-        //    $this->flagDocOrigContinuacao = 1;
-        //    $totPag = '2';
-        //} else {
-        //    $totPag = '1';
-        //}
-        //$totPag = count($this->arrayNFe) >15 ? '2' : '1'; //VALTER
-        //$r = $this->zCabecalho(1, 1, '1', $totPag); //VALTER
+
         $contador = 0;
         while ($contador < count($this->arrayNFe)) {
-            if ($contador == 16) { //VALTER
+            if ($contador >= 16) { //VALTER
                 break;
             }
             $tp = 'NF-e';
@@ -2501,14 +2493,13 @@ class Dacte extends Common
         // COLUNA DE DOCUMENTOS DE TRANSPORTE ANTERIORES
         $contador = 0;
         while ($contador < count($this->arrayIdDocAntEle)) {
-            if ( ($contador + count($this->arrayNFe)) == 16) {
+            if ( ($contador + count($this->arrayNFe)) >= 16) {
                 break;
             }
             $chaveCTe = $this->arrayIdDocAntEle[$contador];
             $numCTe = substr($chaveCTe, 25, 9);
             $serieCTe = substr($chaveCTe, 22, 3);
             $doc = $serieCTe . '/' . $numCTe;
-            //$tp = 'CT-e';
             $tp = substr($chaveCTe, 20, 2); //padrão 57 = CT-e
             if ($tp == '57'){
                 $tp = 'CT-e';
@@ -2543,16 +2534,8 @@ class Dacte extends Common
             $contador++;
         }
 
-        $totalDocs = (count($this->arrayNFe) + count($this->arrayIdDocAntEle));
-        //VALTER - calcula número de páginas pelos totais dos documentos
-        if ($totalDocs >15) {
-            $this->flagDocOrigContinuacao = 1;
-            $totPag = '2';
-        } else {
-            $totPag = '1';
-        }
-        $r = $this->zCabecalho(1, 1, '1', $totPag);
-
+        // outros documentos
+        $contador = 0;
         foreach ($this->infOutros as $k => $d) {
             $temp = $this->infOutros->item($k);
             $tpDoc = $this->pSimpleGetValue($temp, "tpDoc");
@@ -2576,17 +2559,37 @@ class Dacte extends Common
             }
             $numeroDocumento = $nDoc;
             $cnpjChave = $dEmi . " " . $vDocFisc . " " . $dPrev;
-            if ($auxX > $w * 0.90) {
-                $yIniDados = $yIniDados + 4;
-                $auxX = $oldX;
+
+            $this->arrayDocInfOutros[] = [
+                "tpDoc" => $tpDoc,
+                "cnpjChave" => $cnpjChave,
+                "nDoc" => $nDoc
+            ];
+
+            if ( ($contador + count($this->arrayNFe) + count($this->arrayIdDocAntEle)) < 16) {
+                if ($auxX > $w * 0.90) {
+                    $yIniDados = $yIniDados + 4;
+                    $auxX = $oldX;
+                }
+                $this->pTextBox($auxX, $yIniDados, $w * 0.10, $h, $this->arrayDocInfOutros[$contador]['tpDoc'], $aFont, 'T', 'L', 0, '');
+                $auxX += $w * 0.09;
+                $this->pTextBox($auxX, $yIniDados, $w * 0.27, $h, $this->arrayDocInfOutros[$contador]['cnpjChave'], $aFont, 'T', 'L', 0, '');
+                $auxX += $w * 0.28;
+                $this->pTextBox($auxX, $yIniDados, $w * 0.30, $h, $this->arrayDocInfOutros[$contador]['nDoc'], $aFont, 'T', 'L', 0, '');
+                $auxX += $w * 0.14;
             }
-            $this->pTextBox($auxX, $yIniDados, $w * 0.10, $h, $tpDoc, $aFont, 'T', 'L', 0, '');
-            $auxX += $w * 0.09;
-            $this->pTextBox($auxX, $yIniDados, $w * 0.27, $h, $cnpjChave, $aFont, 'T', 'L', 0, '');
-            $auxX += $w * 0.28;
-            $this->pTextBox($auxX, $yIniDados, $w * 0.30, $h, $nDoc, $aFont, 'T', 'L', 0, '');
-            $auxX += $w * 0.14;
+            $contador++;
         }
+
+        $totalDocs = (count($this->arrayNFe) + count($this->arrayIdDocAntEle) + count($this->arrayDocInfOutros));
+        //VALTER - calcula número de páginas pelos totais dos documentos
+        if ($totalDocs >15) {
+            $this->flagDocOrigContinuacao = 1;
+            $totPag = '2';
+        } else {
+            $totPag = '1';
+        }
+        $r = $this->zCabecalho(1, 1, '1', $totPag);
     } //fim da função zDocOrig
 
     /**
@@ -2610,20 +2613,8 @@ class Dacte extends Common
         }
         $w = $maxW;
 
-        //$h = 6; // de sub-titulo
-        //$h = 6 + 3; // de altura do texto (primeira linha
-        //$h = 9 + 3.5 ;// segunda linha
-        //$h = 9 + 3.5+ 3.5 ;// segunda linha
-
-        //VALTER - calcula o total dos documentos
-        //$totalDocs = (count($this->arrayNFe) + count($this->arrayIdDocAntEle));
-
         //VALTER
-        $h = 35;
-        //$h += (( ( $totalDocs/2 ) - 9) * 3.5)+9;
-        //if ($totalDocs%2 !=0) {
-        //    $h = $h+3.5;
-        //} // Caso tenha apenas 1 registro na ultima linha
+        $h = 180; //35 // tem de certar tb na variável "$xDocOrig = 180;" que é usada para antes da observação
 
         $texto = 'DOCUMENTOS ORIGINÁRIOS - CONTINUACÃO';
         $aFont = $this->formatPadrao;
@@ -2634,7 +2625,7 @@ class Dacte extends Common
 
         $y += 3.4;
         $this->pdf->Line($x, $y, $w + 1, $y);
-        $texto = $descr1;
+        $texto = $descr1; //'TIPO DOC'
         $aFont = $this->formatPadrao;
         $this->pTextBox($x, $y, $w * 0.10, $h, $texto, $aFont, 'T', 'L', 0, '');
         $yIniDados = $y;
@@ -2645,12 +2636,12 @@ class Dacte extends Common
         $this->pTextBox($x, $y, $w * 0.23, $h, $texto, $aFont, 'T', 'L', 0, '');
 
         $x += $w * 0.28;
-        $texto = $descr3;
+        $texto = $descr3; // 'SÉRIE/NRO. DOCUMENTO'
         $aFont = $this->formatPadrao;
         $this->pTextBox($x, $y, $w * 0.13, $h, $texto, $aFont, 'T', 'L', 0, '');
 
         $x += $w * 0.14;
-        if ($this->modal == '1') {
+        /* if ($this->modal == '1') {
             if ($this->lota == 1) {
                 $this->pdf->Line($x, $y, $x, $y + 31.5);
             } else {
@@ -2660,8 +2651,9 @@ class Dacte extends Common
             $this->pdf->Line($x, $y, $x, $y + 34.1);
         } else {
             $this->pdf->Line($x, $y, $x, $y + 21.5);
-        }
-        $texto = $descr1;
+        } */
+        $this->pdf->Line($x, $y, $x, ($y + $h - 3.5)); // ---------------- LINHA VERTICAL CAMPO DOCUMENTOS
+        $texto = $descr1; //'TIPO DOC'
         $aFont = $this->formatPadrao;
         $this->pTextBox($x, $y, $w * 0.10, $h, $texto, $aFont, 'T', 'L', 0, '');
 
@@ -2671,7 +2663,7 @@ class Dacte extends Common
         $this->pTextBox($x, $y, $w * 0.23, $h, $texto, $aFont, 'T', 'L', 0, '');
 
         $x += $w * 0.28; // COLUNA SÉRIE/NRO.DOCUMENTO DA DIREITA
-        $texto = $descr3;
+        $texto = $descr3; // 'SÉRIE/NRO. DOCUMENTO'
         $aFont = $this->formatPadrao;
         $this->pTextBox($x, $y, $w * 0.13, $h, $texto, $aFont, 'T', 'L', 0, '');
         $auxX = $oldX;
@@ -2713,7 +2705,10 @@ class Dacte extends Common
 
         //VALTER
         // COLUNA DE DOCUMENTOS DE TRANSPORTE ANTERIORES
-        $contador = 16 - count($this->arrayNFe); //$totalDocs
+        $contador = 16 - count($this->arrayNFe);
+        if ($contador < 0) {
+            $contador = 0;
+        }
         for ($contador = $contador; $contador < count($this->arrayIdDocAntEle); $contador++) {
             $chaveCTe = $this->arrayIdDocAntEle[$contador];
             $numCTe = substr($chaveCTe, 25, 9);
@@ -2751,6 +2746,24 @@ class Dacte extends Common
                 'style' => '');
             $this->pTextBox($auxX, $yIniDados, $w * 0.30, $h, $texto, $aFont, 'T', 'L', 0, '');
             $auxX += $w * 0.15;
+        }
+
+        // DOCUMENTOS OUTROS
+        $contador = 16 - (count($this->arrayNFe) + count($this->arrayIdDocAntEle));
+        if ($contador < 0) {
+            $contador = 0;
+        }
+        for ($contador = $contador; $contador < count($this->arrayDocInfOutros); $contador++) {
+            if ($auxX > $w * 0.90) {
+                $yIniDados = $yIniDados + 4;
+                $auxX = $oldX;
+            }
+            $this->pTextBox($auxX, $yIniDados, $w * 0.10, $h, $this->arrayDocInfOutros[$contador]['tpDoc'], $aFont, 'T', 'L', 0, '');
+            $auxX += $w * 0.09;
+            $this->pTextBox($auxX, $yIniDados, $w * 0.27, $h, $this->arrayDocInfOutros[$contador]['cnpjChave'], $aFont, 'T', 'L', 0, '');
+            $auxX += $w * 0.28;
+            $this->pTextBox($auxX, $yIniDados, $w * 0.30, $h, $this->arrayDocInfOutros[$contador]['nDoc'], $aFont, 'T', 'L', 0, '');
+            $auxX += $w * 0.14;
         }
     } //fim da função zDocOrigContinuacao
 
