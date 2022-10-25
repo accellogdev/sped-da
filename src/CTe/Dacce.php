@@ -120,6 +120,7 @@ class Dacce extends Common
                 $this->xml = file_get_contents($this->xml);
             }
             $this->dom = new Dom();
+            $this->xml = preg_replace('/&(?!#?[a-z0-9]+;)/', '&amp;', $this->xml); // VALTER - #35595 - DACCE - carta de correção - de CTe, não gera quando tem o símbolo "&"
             $this->dom->loadXML($this->xml);
             $this->procEventoCTe = $this->dom->getElementsByTagName("procEventoCTe")->item(0);
             $this->eventoCTe = $this->procEventoCTe->getElementsByTagName("eventoCTe")->item(0);
