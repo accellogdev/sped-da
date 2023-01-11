@@ -91,6 +91,7 @@ class Dacte extends Common
     protected $flagDocOrigContinuacao;
     protected $flagObsContinuacao;
     protected $xObs;
+    protected $xObsContinuacao; //VALTER
     protected $arrayNFe = [];
     protected $TextoRodape = ''; //VALTER
     protected $idDocAntEle; //VALTER
@@ -2857,13 +2858,13 @@ class Dacte extends Common
         $hDif = 26;
         $h = 12 + $hDif;
         $aFontObs = [
-            'font' => $this->fontePadrao,
-            'size' => 7.5,
+            'font' => 'courier', // $this->fontePadrao, // VALTER
+            'size' => 6.5, // 7.5 // VALTER
             'style' => ''
         ];
 
-        // se observação tiver 6 ou mais linhas, manda gerar outra página
-        $textoObs = '... ' . substr($this->xObs, 430 + 1); // pega o restante da observação
+        // se observação tiver 4 ou mais linhas, manda gerar outra página
+        $textoObs = '... ' . $this->xObsContinuacao; // pega o restante da observação
 
         // Printa CAIXA E SEPARADOR
         $textoLabel = 'OBSERVAÇÕES - CONTINUAÇÃO';
@@ -2901,8 +2902,8 @@ class Dacte extends Common
         $hDif = 0;
         $h = 12 + $hDif;
         $aFontObs = [
-            'font' => $this->fontePadrao,
-            'size' => 7.5,
+            'font' => 'courier', // $this->fontePadrao, // VALTER
+            'size' => 6.5, //7.5, // VALTER
             'style' => ''
         ];
 
@@ -2915,12 +2916,26 @@ class Dacte extends Common
         $this->xObs .= $this->zLocalEntrega();
         $obsLines = $this->pGetNumLines($this->xObs, $w, $aFontObs); // número de linhas das observações
 
-        // se observação tiver 6 ou mais linhas, manda gerar outra página
+        // se observação tiver 4 ou mais linhas, manda gerar outra página
         $textoObs = $this->xObs;
+        $this->xObsContinuacao = '';
         if ($obsLines >= 4) {
             $totPag = '2';
             $this->flagObsContinuacao = 1;
-            $textoObs = substr($this->xObs, 1, 430) . ' ...'; // corta a observação
+
+            $tmpStr = '';
+            $iObsBreakSize = 0;
+            for ($i = 0; $i < strlen($this->xObs); $i++) {
+                $tmpStr = $tmpStr . $this->xObs[$i];
+                $breakLines = $this->pGetNumLines($tmpStr, $w, $aFontObs); // número de linhas até o momento
+                if ($breakLines >= 4) {
+                    $iObsBreakSize = strlen($tmpStr) - 6; // tira 4 caractres " ..."
+                    break;
+                }
+            }
+
+            $textoObs = substr($this->xObs, 1, $iObsBreakSize) . ' ...'; // corta a observação (antes o valor era fixo 430 caracteres)
+            $this->xObsContinuacao = substr($this->xObs, $iObsBreakSize + 1); // pega o restante da observação
         }
 
         // Printa CAIXA E SEPARADOR
