@@ -17,6 +17,8 @@ class Pdf extends Fpdf
     private $jStart = array("A"=>103, "B"=>104, "C"=>105);     // Caracteres de seleção do grupo 128
     private $jSwap = array("A"=>101, "B"=>100, "C"=>99);       // Caracteres de troca de grupo
 
+    private $angle;
+
     public function __construct($orientation = 'P', $unit = 'mm', $format = 'A4')
     {
         //passar parametros para a classe principal

@@ -28,7 +28,7 @@ class Damdfe extends Common
     public $yDados=0;
     public $debugMode=0; //ativa ou desativa o modo de debug
     //privadas
-    protected $pdf; // objeto fpdf()
+    protected Pdf | String $pdf = ""; // objeto fpdf()
     protected $xml; // string XML NFe
     protected $logomarca=''; // path para logomarca em jpg
     protected $errMsg=''; // mesagens de erro
@@ -59,12 +59,51 @@ class Damdfe extends Common
     protected $tpEmis;
     //objetos
     private $dom;
-    private $procEventoNFe;
-    private $evento;
-    private $infEvento;
-    private $retEvento;
-    private $rinfEvento;
+    // private $procEventoNFe;
+    // private $evento;
+    // private $infEvento;
+    // private $retEvento;
+    // private $rinfEvento;
     protected $qrCodMDFe; //qrCode - VALTER
+
+    protected $mdfeProc;
+    protected $infMDFe;
+    protected $emit;
+    protected $CNPJ;
+    protected $IE;
+    protected $xNome;
+    protected $enderEmit;
+    protected $xLgr;
+    protected $nro;
+    protected $xBairro;
+    protected $UF;
+    protected $xMun;
+    protected $CEP;
+    protected $ide;
+    protected $mod;
+    protected $serie;
+    protected $dhEmi;
+    protected $UFIni;
+    protected $UFFim;
+    protected $nMDF;
+    protected $tot;
+    protected $qNFe;
+    protected $qNF;
+    protected $qCTe;
+    protected $qCT;
+    protected $cUnid;
+    protected $qCarga;
+    protected $infModal;
+    protected $rodo;
+    protected $ciot;
+    protected $infContratante;
+    protected $seg;
+    protected $veicTracao;
+    protected $veicReboque;
+    protected $valePed;
+    protected $infCpl;
+    protected $dhRecbto;
+    protected $condutor;
 
     protected $TextoRodape = ''; //VALTER
     

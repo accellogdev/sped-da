@@ -1184,9 +1184,11 @@ class Fpdf
         if (ini_get('mbstring.func_overload') & 2) {
             $this->error('mbstring overloading must be disabled');
         }
-        //Disable runtime magic quotes
-        if (get_magic_quotes_runtime()) {
-            @set_magic_quotes_runtime(0);
+        if (version_compare(phpversion(), '8.0.0', '<')) {
+            //Disable runtime magic quotes
+            if (get_magic_quotes_runtime()) {
+                @set_magic_quotes_runtime(0);
+            }
         }
     }
 
@@ -1706,7 +1708,7 @@ class Fpdf
     {
         $filter = ($this->compress) ? '/Filter /FlateDecode ' : '';
         reset($this->images);
-        while (list($file,$info) = each($this->images)) {
+        foreach ($this->images as $file => $info) {
             $this->newObj();
             $this->images[$file]['n'] = $this->n;
             $this->out('<</Type /XObject');

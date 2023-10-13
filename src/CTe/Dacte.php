@@ -1831,10 +1831,10 @@ class Dacte extends Common
         $this->pTextBox($x, $y, $w, $h, $texto, $aFont, 'T', 'L', 0, '');
         $texto = $this->pSimpleGetValue($this->infQ->item(0), "tpMed") . "\r\n";
         $texto .= number_format(
-            $this->pSimpleGetValue(
+            floatval($this->pSimpleGetValue(
                 $this->infQ->item(0),
                 "qCarga"
-            )
+            ))
             / $this->zMultiUniPeso(
                 $this->pSimpleGetValue(
                     $this->infQ->item(0),
@@ -1842,7 +1842,7 @@ class Dacte extends Common
                 )
             ),
             3,
-            ".",
+            ",",
             ""
         );
         $texto .= ' ' . $this->zUnidade($this->pSimpleGetValue($this->infQ->item(0), "cUnid"));
@@ -1861,15 +1861,15 @@ class Dacte extends Common
         $this->pTextBox($x, $y, $w, $h, $texto, $aFont, 'T', 'L', 0, '');
         $texto = $this->pSimpleGetValue($this->infQ->item(1), "tpMed") . "\r\n";
         $texto .= number_format(
-            $this->pSimpleGetValue(
+            floatval($this->pSimpleGetValue(
                 $this->infQ->item(1),
                 "qCarga"
-            )
+            ))
             / $this->zMultiUniPeso(
                 $this->pSimpleGetValue($this->infQ->item(1), "cUnid")
             ),
             3,
-            ".",
+            ",",
             ""
         );
         $texto = $this->pSimpleGetValue($this->infQ->item(1), "qCarga") == '' ? '' : $texto;
@@ -1891,12 +1891,12 @@ class Dacte extends Common
         $qCarga = $this->pSimpleGetValue($this->infQ->item(2), "qCarga");
         $texto .= !empty($qCarga) ?
             number_format(
-                $qCarga
+                floatval($qCarga)
                 / $this->zMultiUniPeso(
                     $this->pSimpleGetValue($this->infQ->item(2), "cUnid")
                 ),
                 3,
-                ".",
+                ",",
                 ""
             ) :
             '';
@@ -3987,7 +3987,7 @@ class Dacte extends Common
      * zMultiUniPeso
      * Fornece a imformação multiplicação de peso contida na CTe
      *
-     * @param  interger $U Informação de peso extraida da CTe
+     * @param  string $U Informação de peso extraida da CTe
      * @return interger
      */
     protected function zMultiUniPeso($U = '')

@@ -9,9 +9,8 @@
         {
             "name": "Roberto L. Machado",
             "email": "linux.rlm@gmail.com.br",
-            "homepage": "http://www.nfephp.org",
-            "role": "Developer",
-			"update": "https://github.com/joaoroyosilva/sped-da"
+            "homepage": "http://www.nfephp.org;https://github.com/joaoroyosilva/sped-da",
+            "role": "Developer"
         },
         {
             "name": "Comunidade NFePHP",
@@ -20,7 +19,7 @@
     ],
     "require": {
         "php" : ">= 7.0",
-        "tecnickcom/tc-lib-barcode": "^1.15"
+        "tecnickcom/tc-lib-barcode": "^1.17.38"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^2.8",
