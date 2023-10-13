@@ -98,7 +98,16 @@ class Dacte extends Common
     protected $arrayIdDocAntEle = []; //VALTER
     protected $qrCodCTe; //qrCode - ValterFC
     protected $arrayDocInfOutros = []; //VALTER
-    
+
+    protected $cteProc;
+    protected $toma;
+    protected $enderToma;
+    protected $respSeg;
+    protected $protCTe;
+    protected $lota;
+    protected $infOutros;
+    protected $wCanhoto;
+
     /**
      * __construct
      *
@@ -464,7 +473,7 @@ class Dacte extends Common
                 case '2':
                     $y += 17.9;
                     $x = $xInic;
-                    // TODO fmertins 31/10/14: este método não existe...
+                    // TODO: fmertins 31/10/14: este método não existe...
                     $r = $this->zModalAereo($x, $y);
                     break;
                 case '3':
@@ -480,7 +489,7 @@ class Dacte extends Common
                 case '5':
                     $y += 17.9;
                     $x = $xInic;
-                    // TODO fmertins 31/10/14: este método não existe...
+                    // TODO: fmertins 31/10/14: este método não existe...
                     $r = $this->zModalDutoviario($x, $y);
                     break;
             }

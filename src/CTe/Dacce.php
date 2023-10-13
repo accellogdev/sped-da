@@ -55,6 +55,9 @@ class Dacce extends Common
     protected $nProt;
     protected $TextoRodape = ''; //VALTER
 
+    protected $CNPJDest;
+    protected $CPFDest;
+
     private $dom;
     private $procEventoCTe;
     private $eventoCTe;

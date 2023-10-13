@@ -28,7 +28,7 @@ class Damdfe extends Common
     public $yDados=0;
     public $debugMode=0; //ativa ou desativa o modo de debug
     //privadas
-    protected Pdf | String $pdf = ""; // objeto fpdf()
+    protected $pdf = ""; // objeto fpdf()
     protected $xml; // string XML NFe
     protected $logomarca=''; // path para logomarca em jpg
     protected $errMsg=''; // mesagens de erro

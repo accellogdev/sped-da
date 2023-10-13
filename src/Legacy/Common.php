@@ -6,7 +6,7 @@ class Common
 {
     protected $logomarca;
     protected $emit;
-    protected Pdf | String $pdf = ""; // objeto fpdf()
+    protected $pdf = ""; // objeto fpdf()
 
     /**
      * pAdicionaLogoPeloCnpj

@@ -301,7 +301,9 @@ class Danfe extends Common
     protected $debugMode=2;
 
     protected $TextoRodape = ''; //VALTER
-    
+    protected $nfeProc;
+    protected $situacao_externa;
+
     /**
      * __construct
      *
