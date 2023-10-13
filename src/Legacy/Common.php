@@ -340,7 +340,7 @@ class Common
             //remover espaços desnecessários
             $text = trim($text);
             //converter o charset para o fpdf
-            $text = mb_convert_encoding($text, 'UTF-8');
+            $text = mb_convert_encoding($text, 'Windows-1252', 'UTF-8');
             //decodifica os caracteres html no xml
             $text = html_entity_decode($text);
         } else {
@@ -479,7 +479,7 @@ class Common
             //remover espaços desnecessários
             $text = trim($text);
             //converter o charset para o fpdf
-            $text = mb_convert_encoding($text, 'UTF-8');
+            $text = mb_convert_encoding($text, 'Windows-1252', 'UTF-8');
             //decodifica os caracteres html no xml
             $text = html_entity_decode($text);
         } else {
