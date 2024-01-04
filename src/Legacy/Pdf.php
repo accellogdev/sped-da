@@ -214,7 +214,12 @@ class Pdf extends Fpdf
                 $jeu = (($madeA < $madeB) ? "B" : "A" );
                 $jeuguid = $jeu . "guid";
                 $crypt .= chr(($crypt > "") ? $this->jSwap["$jeu"] : $this->jStart["$jeu"]);
-                $crypt .= strtr(substr($code, 0, $made), $this->setFrom[$jeu], $this->setTo[$jeu]);
+
+                // correção para "strtr(): Argument #2 ($from) must be of type array"
+                // quando strtr('1', '', NULL)
+                $from = strval(@$this->setFrom[$jeu]);
+                $to   = strval(@$this->setTo[$jeu]);
+                $crypt .= strtr(substr($code, 0, $made), $from, $to);
             }
             $code = substr($code, $made);
             $Aguid = substr($Aguid, $made);
