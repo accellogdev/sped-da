@@ -745,8 +745,11 @@ class Dacte extends Common
             case '3':
                 $texto = 'Redespacho Intermediário';
                 break;
+            case '4':
+                $texto = 'Serviço Vinculado a Multimodal';
+                break;
             default:
-                $texto = 'ERRO' . $tpServ;
+                $texto = 'ERRO id: ' . $tpServ;
         }
         $aFont = $this->formatNegrito;
         $this->pTextBox($x + $wa + 4.5, $y1 + 3, $w * 0.5, $h1, $texto, $aFont, 'T', 'C', 0, '', false);
