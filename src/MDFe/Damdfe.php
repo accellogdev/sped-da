@@ -106,6 +106,7 @@ class Damdfe extends Common
     protected $condutor;
 
     protected $TextoRodape = ''; //VALTER
+    protected $TextoMensagem = ''; //VALTER
     
     /**
      * __construct
@@ -473,6 +474,23 @@ class Damdfe extends Common
             $texto = 'DAMDFE impresso em contingência - '.date('d/m/Y   H:i:s');
         }
         $this->pTextBox($x, $y+4, $w, 8, $texto, $aFont, 'T', 'C', 0, '');
+
+        // Impressão de mensagem (para encerramento, etc)
+        if ($this->TextoMensagem != '') {
+            $x = 10;
+            if ($this->orientacao == 'P') {
+                $yy = round($this->hPrint*2/3, 0);
+            } else {
+                $yy = round($this->hPrint/2, 0);
+            }
+            $h = -90;
+            $w = $maxW-(2*$x);
+            $this->pdf->SetTextColor(90, 90, 90);
+            $texto = $this->TextoMensagem;
+            $aFont = array('font'=>$this->fontePadrao, 'size'=>48, 'style'=>'B');
+            $this->pTextBox($x, $yy, $w, $h, $texto, $aFont, 'C', 'C', 0, '');
+        }
+
         if ($this->tpAmb != 1) {
             $x = 10;
             if ($this->orientacao == 'P') {
@@ -512,6 +530,7 @@ class Damdfe extends Common
             }
             $this->pdf->SetTextColor(0, 0, 0);
         }
+
         return $y;
     }// fim headerMDFe
     
@@ -660,6 +679,23 @@ class Damdfe extends Common
             $texto = 'DAMDFE impresso em contingência - '.date('d/m/Y   H:i:s');
         }
         $this->pTextBox($x, $y+4, $maxW, 8, $texto, $aFont, 'T', 'C', 0, '');
+
+        // Impressão de mensagem (para encerramento, etc)
+        if ($this->TextoMensagem != '') {
+            $x = 10;
+            if ($this->orientacao == 'P') {
+                $yy = round($this->hPrint*2/3, 0);
+            } else {
+                $yy = round($this->hPrint/2, 0);
+            }
+            $h = -90; //55;
+            $w = $maxW-(2*$x);
+            $this->pdf->SetTextColor(90, 90, 90);
+            $texto = $this->TextoMensagem;
+            $aFont = array('font'=>$this->fontePadrao, 'size'=>48, 'style'=>'B');
+            $this->pTextBox($x, $yy, $w, $h, $texto, $aFont, 'C', 'C', 0, '');
+        }
+
         if ($this->tpAmb != 1) {
             $x = 10;
             if ($this->orientacao == 'P') {
@@ -1274,6 +1310,18 @@ class Damdfe extends Common
     public function setTextoRodape($newTextoRodape)
     {
         $this->TextoRodape = $newTextoRodape;
+        
+    }
+
+    /**
+     * Para adicionar mensagens, como o "Encerramento", etc
+     * @param string $newTextoMensagem
+     * @return none
+     * Author: VALTER
+     */
+    public function setTextoMensagem($newTextoMensagem)
+    {
+        $this->TextoMensagem = $newTextoMensagem;
         
     }
 
