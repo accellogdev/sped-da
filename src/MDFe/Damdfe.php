@@ -28,6 +28,10 @@ class Damdfe extends Common
     public $yDados=0;
     public $debugMode=0; //ativa ou desativa o modo de debug
     //privadas
+    /**
+     * objeto fpdf()
+     * @var object
+     */
     protected $pdf = ""; // objeto fpdf()
     protected $xml; // string XML NFe
     protected $logomarca=''; // path para logomarca em jpg
@@ -1058,16 +1062,6 @@ class Damdfe extends Common
             $this->pTextBox($x1, $y, $x2, 8, $texto, $aFont, 'T', 'C', 0, '', false);
             $y += 6;
 
-            //Rafael
-            $seg = $this->seg;
-            foreach ($seg as $item) {
-                $seg_infResp = $item->getElementsByTagName("infResp")->item(0);
-                $seg_infSeg = $item->getElementsByTagName("infSeg")->item(0);
-            }
-            //Linha Antiga(está funcionando)
-            //$seg_infResp = $this->seg->getElementsByTagName("infResp")->item(0);
-            //$seg_infSeg = $this->seg->getElementsByTagName("infSeg")->item(0);
-
             //----------------
             //Responsável
             //----------------
@@ -1096,7 +1090,9 @@ class Damdfe extends Common
             //E provavelmente teremos que mexer no Layout da Damdfe.
             //Laço para percorrer todas as Tags 'seg'.
             foreach ($seg as $item) {
-                 /** @var \DOMElement $item */
+                /** @var \DOMElement $item */
+                $seg_infResp = $item->getElementsByTagName("infResp")->item(0);
+
                  //Esse if não vai deixar trazer mais de 15 número de averbação
                 if($i < $contador) {
                     break;
@@ -1146,7 +1142,7 @@ class Damdfe extends Common
             $texto = 'Seguradora';
             $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
             $this->pTextBox($x1+2, $y, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
-    
+
 
             $i = 14; //Quantidade de Número Averbação que cabe no Campo;
             $contador = 0;
@@ -1160,6 +1156,8 @@ class Damdfe extends Common
             //Laço para percorrer todas as Tags 'seg'.
             foreach($seg as $item){
                 /** @var \DOMElement $item */
+                $seg_infSeg = $item->getElementsByTagName("infSeg")->item(0);
+
                 //Esse if não vai deixar trazer mais de 15 número de averbação
                 if($i < $contador) {
                     break;
@@ -1216,35 +1214,27 @@ class Damdfe extends Common
             //Caso no futuro alguém informe mais de 15 números, dai voltamos a mexer nesse laço ou repensar em como fazer ele.
             //E provavelmente teremos que mexer no Layout da Damdfe.
             //Laço para percorrer todas as Tags 'seg'.
-            //Rafael
-            $seg = $this->seg;
             foreach ($seg as $item) {
                 /** @var \DOMElement $item */
                  //Esse if não vai deixar trazer mais de 15 número de averbação
-                 if($i < $contador) {
+                if($i < $contador) {
                     break;
-
                 } else {
                     if (isset($item->getElementsByTagName("nApol")->item(0)->nodeValue)) {
-                         $altura += 4;
-                         $texto = $item->getElementsByTagName("nApol")->item(0)->nodeValue;
-                         $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
-                         $this->pTextBox($x1, $altura-3, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
+                        $altura += 4;
+                        $texto = $item->getElementsByTagName("nApol")->item(0)->nodeValue;
+                        $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
+                        $this->pTextBox($x1, $altura-3, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
                     } else {
-                         $altura += 4;
-                         $texto = '';
-                         $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
-                         $this->pTextBox($x1, $altura-3, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
+                        $altura += 4;
+                        $texto = '';
+                        $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
+                        $this->pTextBox($x1, $altura-3, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);
                     }
                 }  
                 $contador++;  
             }
 
-            //Linha Antiga(está funcionando)
-            /*if (!empty($this->seg->getElementsByTagName("nApol")->item(0)->nodeValue)) {
-                $texto = $this->seg->getElementsByTagName("nApol")->item(0)->nodeValue;
-            }*/ 
-            
             //----------------
             //Número Averbação
             //----------------
@@ -1256,22 +1246,22 @@ class Damdfe extends Common
             $aFont = array('font'=>$this->fontePadrao, 'size'=>8, 'style'=>'');
             $this->pTextBox($x1+40, $y+1, $x2, 8, $texto, $aFont, 'T', 'L', 0, '', false);
             //$y += 12; //nova linha
-           
+
             //Rafael
             $i = 14; //Quantidade de Número Averbação que cabe no Campo;
             $contador = 0;
             $texto = '';
             $altura = $y + 4;
             $y += 12;
-             /** @var \DOMNodeList $seg */
-             $seg = $this->seg;
+            /** @var \DOMNodeList $seg */
+            $seg = $this->seg;
             //De inicio esse laço vai trazer 15 números de averbação, hoje esse número vai nos atender muito bem.
             //Caso no futuro alguém informe mais de 15 números, dai voltamos a mexer nesse laço ou repensar em como fazer ele.
             //E provavelmente teremos que mexer no Layout da Damdfe.
             //Laço para percorrer todas as Tags 'seg'.
             foreach ($seg as $item) {
-                 /** @var \DOMElement $item */
-                 //Esse if não vai deixar trazer mais de 15 número de averbação
+                /** @var \DOMElement $item */
+                //Esse if não vai deixar trazer mais de 15 número de averbação
                 if($i < $contador) {
                     break;
                 } else {
@@ -1289,12 +1279,6 @@ class Damdfe extends Common
                 }
                 $contador++;
             }
-            //Jeito antigo de trazer o número de averbação(está funcionando), porém só traz o primeiro número.
-            /*if (! empty($this->seg->getElementsByTagName("nAver")->item(0)->nodeValue)) {
-                $texto = $this->seg->getElementsByTagName("nAver")->item(0)->nodeValue;
-            }
-            $aFont = array('font'=>$this->fontePadrao, 'size'=>10, 'style'=>'');
-            $this->pTextBox($x1, $y+4, $x2, 10, $texto, $aFont, 'T', 'C', 0, '', false);*/
             $y += 12;
             $y += 3;
         }
