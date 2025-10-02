@@ -993,7 +993,12 @@ class Damdfe extends Common
         $altura = $y;
         for ($i = 0; $i < $valesPedagios; $i++) {
             $altura += 4;
-            $texto = $this->valePed->item($i)->getElementsByTagName('nCompra')->item(0)->nodeValue;
+
+            $texto = "";
+            if ( !empty($this->valePed) && !empty($this->valePed->item($i)) && !empty($this->valePed->item($i)->getElementsByTagName('nCompra')->item(0)) ) {
+                $texto = $this->valePed->item($i)->getElementsByTagName('nCompra')->item(0)->nodeValue;
+            }
+
             $aFont = array('font'=>$this->fontePadrao, 'size'=>10, 'style'=>'');
             $this->pTextBox($x1 + 1, $altura, $x2+5, 10, $texto, $aFont, 'T', 'L', 0, '', false);
         }
