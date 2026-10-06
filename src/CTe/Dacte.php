@@ -2049,7 +2049,7 @@ class Dacte extends Common
         $texto = 'VALOR TOTAL DO SERVIÇO';
         $aFont = $this->formatPadrao;
         $this->pTextBox($x, $y, $w * 0.14, $h, $texto, $aFont, 'T', 'C', 0, '');
-        $texto = number_format($this->pSimpleGetValue($this->vPrest, "vTPrest"), 2, ",", ".");
+        $texto = number_format((float) $this->pSimpleGetValue($this->vPrest, "vTPrest"), 2, ",", ".");
         $aFont = array(
             'font' => $this->fontePadrao,
             'size' => 9,
@@ -2061,7 +2061,7 @@ class Dacte extends Common
         $texto = 'VALOR A RECEBER';
         $aFont = $this->formatPadrao;
         $this->pTextBox($x, $y, $w * 0.14, $h, $texto, $aFont, 'T', 'C', 0, '');
-        $texto = number_format($this->pSimpleGetValue($this->vPrest, "vRec"), 2, ",", ".");
+        $texto = number_format((float) $this->pSimpleGetValue($this->vPrest, "vRec"), 2, ",", ".");
         $aFont = array(
             'font' => $this->fontePadrao,
             'size' => 9,
@@ -2302,7 +2302,7 @@ class Dacte extends Common
         $cUF = $this->ide->getElementsByTagName('cUF')->item(0)->nodeValue;
         $CNPJ = "00000000000000" . $this->emit->getElementsByTagName('CNPJ')->item(0)->nodeValue;
         $CNPJ = substr($CNPJ, -14);
-        $vCT = number_format($this->pSimpleGetValue($this->vPrest, "vRec"), 2, "", "") * 100;
+        $vCT = number_format((float) $this->pSimpleGetValue($this->vPrest, "vRec"), 2, "", "") * 100;
         $ICMS_CST = $this->pSimpleGetValue($this->ICMS, "CST");
         switch ($ICMS_CST) {
             case '00':
@@ -2835,7 +2835,7 @@ class Dacte extends Common
             'size' => 8,
             'style' => '');
         $this->pTextBox($auxX, $yIniDados, $w, $h, $texto, $aFont, 'T', 'L', 0, '');
-        $texto = number_format($this->pSimpleGetValue($this->vPrest, "vTPrest"), 2, ",", ".");
+        $texto = number_format((float) $this->pSimpleGetValue($this->vPrest, "vTPrest"), 2, ",", ".");
         $aFont = array(
             'font' => $this->fontePadrao,
             'size' => 8,
